@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #c25cff;      /* Purple from the logo */
+  --color-secondary: #39ff14;    /* Neon Green */
+  --color-background: #0b0b0b;   /* Almost black */
+  --color-surface: #181818;      /* Cards */
+  --color-text: #ffffff;
+  --color-muted: #a1a1aa;
+  --color-border: #303030;
+
+  --color-success: #39ff14;
+  --color-danger: #ef4444;
+}
+
+/* Smooth Scrolling when using hyperlinks */
+html {
+  scroll-behavior: smooth;
+}
