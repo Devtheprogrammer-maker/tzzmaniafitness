@@ -87,8 +87,8 @@ export default function Pricing() {
             <div
               key={index}
               className={`p-[2px] rounded-2xl transition-all duration-300 hover:-translate-y-2 flex flex-col w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] xl:w-[calc(20%-20px)] min-w-[250px] max-w-[340px] ${plan.IsPopular
-                  ? 'bg-gradient-to-r from-primary to-secondary shadow-lg shadow-primary/20 scale-105'
-                  : 'bg-white/5 hover:bg-gradient-to-r hover:from-primary/50 hover:to-secondary/50'
+                ? 'bg-gradient-to-r from-primary to-secondary shadow-lg shadow-primary/20 scale-105'
+                : 'bg-white/5 hover:bg-gradient-to-r hover:from-primary/50 hover:to-secondary/50'
                 }`}
             >
               {/* Inner Card Container */}
@@ -131,9 +131,9 @@ export default function Pricing() {
                 {/* Call To Action Anchor Element */}
                 <a
                   href="#contact"
-                  className={`w-full font-bold py-3 px-4 rounded-xl text-center text-sm uppercase tracking-wider transition-all duration-300 ${plan.IsPopular
-                      ? 'bg-gradient-to-r from-primary to-secondary text-white hover:opacity-90 shadow-md shadow-primary/10'
-                      : 'bg-slate-900 border border-slate-800 text-white hover:border-slate-700 hover:bg-slate-800'
+                  className={`w-full font-bold py-3 px-4 rounded-xl text-center text-sm uppercase tracking-wider transition-all duration-300 hover:scale-110 ${plan.IsPopular
+                    ? 'bg-gradient-to-r from-primary to-secondary text-white hover:opacity-90 shadow-md shadow-primary/10'
+                    : 'bg-slate-900 border border-slate-800 text-white hover:border-slate-700 hover:bg-slate-800'
                     }`}
                 >
                   Select Plan
