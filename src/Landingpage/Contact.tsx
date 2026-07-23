@@ -103,7 +103,7 @@ export default function Contact() {
 
                         {/* Future development tag */}
                         <div className="absolute top-4 right-4 bg-slate-900 border border-slate-800 text-[10px] font-bold text-slate-500 uppercase tracking-widest px-2.5 py-1 rounded-full">
-                            Form Backend Coming Soon
+                            Form Coming Soon
                         </div>
 
                         <h3 className="text-xl font-bold text-white mb-6 uppercase tracking-tight">Send a Quick Message</h3>

@@ -1,16 +1,20 @@
 import { createBrowserRouter } from 'react-router-dom';
 import App from './App.tsx'
 import Signup from "./Pages/signup.tsx";
+import NotFound from './Pages/NotFound.tsx';
 
 export const router = createBrowserRouter([
     {
-        path: '/tzzmaniafitness',
+        path: '/',
         element: <App />
     },
     {
-        path: '/tzzmaniafitness/signup',
+        path: 'signup',
         element: <Signup />
-
+    }, 
+    {
+        path: "*", 
+        element: <NotFound />
     }
 
 ]);

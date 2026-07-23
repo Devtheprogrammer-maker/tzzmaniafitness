@@ -1,9 +1,13 @@
 import logo from "../../public/logo.jpg";
 import { useState } from "react";
+import { Link } from 'react-router-dom';
+// Import HashLink from the new package
+import { HashLink } from 'react-router-hash-link';
 
 const Navbar: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("#about");
+  // Initialize without the '#' character
+  const [activeTab, setActiveTab] = useState("index");
 
   const getLinkClass = (tabName: string) => {
     const baseClass = "transition-colors duration-200 hover:text-primary py-1";
@@ -13,13 +17,14 @@ const Navbar: React.FC = () => {
     return `${baseClass} ${activeTab === tabName ? activeClass : inactiveClass}`;
   };
 
-
   return (
-    <nav className="sticky top-0 z-50 flex items-center justify-between bg-border/60 backdrop-blur-md px-6 py-4 shadow-md">
+    <nav className="sticky top-0 z-50 flex items-center justify-between bg-border/60 backdrop-blur-md px-6 py-4 shadow-md text-white">
       {/* Logo */}
-      <a
-        href="#"
-        className="flex items-center gap-3 text-xl font-bold transition-colors duration-200 hover:text-primary"
+      <HashLink
+        smooth
+        to="/#"
+        onClick={() => setActiveTab("index")}
+        className={`flex items-center gap-3 text-xl font-bold transition-colors duration-200 hover:text-primary ${getLinkClass("index")}`}
       >
         <img
           src={logo}
@@ -29,49 +34,54 @@ const Navbar: React.FC = () => {
         <span className="transition-all duration-300 hover:scale-105 hover:shadow-lg">
           Tzzmania <span className="text-primary">Fitness</span>
         </span>
-      </a>
+      </HashLink>
 
-      {/* Navigation Links */}
+      {/* Navigation Links - 3. Use HashLink with smooth scrolling behavior */}
       <div className="hidden md:flex items-center gap-8 font-medium">
-        <a
-          href="#about"
+        <HashLink
+          smooth
+          to="/#about"
           onClick={() => setActiveTab("about")}
           className={getLinkClass("about")}
         >
           About Us
-        </a>
-        <a
-          href="#schedule"
+        </HashLink>
+        <HashLink
+          smooth
+          to="/#schedule"
           onClick={() => setActiveTab("schedule")}
           className={getLinkClass("schedule")}
         >
           Gym Schedule
-        </a>
-        <a
-          href="#membership"
+        </HashLink>
+        <HashLink
+          smooth
+          to="/#membership"
           onClick={() => setActiveTab("membership")}
           className={getLinkClass("membership")}
         >
           Memberships
-        </a>
-        <a
-          href="#contact"
+        </HashLink>
+        <HashLink
+          smooth
+          to="/#contact"
           onClick={() => setActiveTab("contact")}
           className={getLinkClass("contact")}
         >
           Contact Us
-        </a>
+        </HashLink>
       </div>
 
       {/* Button */}
-      <button
-        disabled
-        className="rounded-full bg-primary px-5 py-2 text-white font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 "
-      >
-        Sign In
-      </button>
+      <Link to="/signup">
+        <button
+          className="rounded-full bg-primary px-5 py-2 text-white font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer"
+        >
+          Sign In
+        </button>
+      </Link>
 
-      {/**/}
+      {/* Mobile Toggle */}
       <button
         className="md:hidden text-3xl"
         onClick={() => setMenuOpen(!menuOpen)}
@@ -79,34 +89,47 @@ const Navbar: React.FC = () => {
         {menuOpen ? "✖" : "☰"}
       </button>
 
+      {/* Mobile Dropdown - 4. Apply smooth HashLinks here too */}
       {menuOpen && (
         <div className="absolute left-0 top-full w-full bg-surface shadow-lg md:hidden bg-surface/90 backdrop-blur-md text-center">
-          <a href="#about" onClick={() => setActiveTab("about")}
-            className={`block px-6 py-4 hover:bg-primary hover:text-white ${getLinkClass("about")}`}>
+          <HashLink
+            smooth
+            to="/#about"
+            onClick={() => { setActiveTab("about"); setMenuOpen(false); }}
+            className={`block px-6 py-4 hover:bg-primary hover:text-white ${getLinkClass("about")}`}
+          >
             About
-          </a>
+          </HashLink>
 
-          <a href="#schedule" onClick={() => setActiveTab("schedule")}
-            className={`block px-6 py-4 hover:bg-primary hover:text-white ${getLinkClass("schedule")}`}>
+          <HashLink
+            smooth
+            to="/#schedule"
+            onClick={() => { setActiveTab("schedule"); setMenuOpen(false); }}
+            className={`block px-6 py-4 hover:bg-primary hover:text-white ${getLinkClass("schedule")}`}
+          >
             Schedule
-          </a>
+          </HashLink>
 
-          <a href="#membership" onClick={() => setActiveTab("membership")}
-            className={`block px-6 py-4 hover:bg-primary hover:text-white ${getLinkClass("membership")}`}>
+          <HashLink
+            smooth
+            to="/#membership"
+            onClick={() => { setActiveTab("membership"); setMenuOpen(false); }}
+            className={`block px-6 py-4 hover:bg-primary hover:text-white ${getLinkClass("membership")}`}
+          >
             Membership
-          </a>
+          </HashLink>
 
-          <a href="#contact" onClick={() => setActiveTab("contact")}
-            className={`block px-6 py-4 hover:bg-primary hover:text-white ${getLinkClass("contact")}`}>
+          <HashLink
+            smooth
+            to="/#contact"
+            onClick={() => { setActiveTab("contact"); setMenuOpen(false); }}
+            className={`block px-6 py-4 hover:bg-primary hover:text-white ${getLinkClass("contact")}`}
+          >
             Contact
-          </a>
+          </HashLink>
         </div>
       )}
-
-
     </nav>
-
-
   );
 }
 
