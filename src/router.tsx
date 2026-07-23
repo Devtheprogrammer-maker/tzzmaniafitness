@@ -9,11 +9,11 @@ export const router = createBrowserRouter([
         element: <App />
     },
     {
-        path: '/tzzmaniafitness/signup',
+        path: '/signup',
         element: <Signup />
     }, 
     {
-        path: "/tzzmaniafitness/*", 
+        path: "*", 
         element: <NotFound />
     }
 
