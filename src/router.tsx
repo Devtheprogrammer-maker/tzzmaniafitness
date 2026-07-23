@@ -5,15 +5,15 @@ import NotFound from './Pages/NotFound.tsx';
 
 export const router = createBrowserRouter([
     {
-        path: '/',
+        path: '/tzzmaniafitness',
         element: <App />
     },
     {
-        path: 'signup',
+        path: '/tzzmaniafitness/signup',
         element: <Signup />
     }, 
     {
-        path: "*", 
+        path: "/tzzmaniafitness/*", 
         element: <NotFound />
     }
 
