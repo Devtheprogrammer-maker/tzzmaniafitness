@@ -4,17 +4,18 @@ import Signup from "./Pages/signup.tsx";
 import NotFound from './Pages/NotFound.tsx';
 
 export const router = createBrowserRouter([
+    
     {
-        path: '/tzzmaniafitness',
+        path: '/',
         element: <App />
     },
     {
         path: '/signup',
         element: <Signup />
-    }, 
+    },
     {
-        path: "*", 
+        path: "*",
         element: <NotFound />
     }
 
-]);
+], {basename: "/tzzmaniafitness",});

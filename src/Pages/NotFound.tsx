@@ -1,5 +1,6 @@
 import React from "react";
-import Navbar from "../components/Navbar";
+import Navbar from "../components/Navbar.tsx";
+import Footer from '../components/Footer.tsx'
 import {
     ExclamationTriangleIcon,
     ArrowLeftIcon,
@@ -70,6 +71,7 @@ const NotFound: React.FC = () => {
 
                 </div>
             </div>
+            <Footer />
         </section>
     );
 };
