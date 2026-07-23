@@ -1,7 +1,7 @@
 
 import { ClockIcon, CalendarIcon, SunIcon } from '@heroicons/react/24/solid';
 
-export default function Schedule() {
+const Schedule: React.FC = () => {
   const weekdaySessions = [
     { session: "1st Session", time: "5:00 AM - 7:00 AM", tag: "Early Bird" },
     { session: "2nd Session", time: "7:00 AM - 9:00 AM", tag: "Morning Rush" },
@@ -15,7 +15,7 @@ export default function Schedule() {
   return (
     <section id="schedule" className="bg-background border-t border-slate-900 py-24 text-text">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Header section */}
         <div className="text-center max-w-2xl mx-auto mb-16">
           <span className="text-xs font-bold uppercase tracking-widest text-secondary bg-secondary/10 px-4 py-1.5 rounded-full border border-secondary/20">
@@ -31,7 +31,7 @@ export default function Schedule() {
 
         {/* Schedule Split Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-          
+
           {/* Weekday Block Card (Spans 2 columns on desktop) */}
           <div className="lg:col-span-2 rounded-2xl border border-white/5 bg-surface/40 p-6 backdrop-blur-sm shadow-md">
             <div className="flex items-center gap-3 border-b border-white/10 pb-4 mb-6">
@@ -45,8 +45,8 @@ export default function Schedule() {
             {/* Timetable row grid */}
             <div className="space-y-3">
               {weekdaySessions.map((slot, index) => (
-                <div 
-                  key={index} 
+                <div
+                  key={index}
                   className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl bg-background/50 border border-white/5 hover:border-primary/20 hover:bg-surface/80 transition-all group"
                 >
                   <div className="flex items-center gap-4">
@@ -105,3 +105,5 @@ export default function Schedule() {
     </section>
   );
 }
+
+export default Schedule;

@@ -1,7 +1,7 @@
 import logo from "../../public/logo.jpg";
 import { useState } from "react";
 
-export default function Navbar() {
+const Navbar: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("#about");
 
@@ -82,22 +82,22 @@ export default function Navbar() {
       {menuOpen && (
         <div className="absolute left-0 top-full w-full bg-surface shadow-lg md:hidden bg-surface/90 backdrop-blur-md text-center">
           <a href="#about" onClick={() => setActiveTab("about")}
-          className={`block px-6 py-4 hover:bg-primary hover:text-white ${getLinkClass("about")}`}>
+            className={`block px-6 py-4 hover:bg-primary hover:text-white ${getLinkClass("about")}`}>
             About
           </a>
 
           <a href="#schedule" onClick={() => setActiveTab("schedule")}
-          className={`block px-6 py-4 hover:bg-primary hover:text-white ${getLinkClass("schedule")}`}>
+            className={`block px-6 py-4 hover:bg-primary hover:text-white ${getLinkClass("schedule")}`}>
             Schedule
           </a>
 
           <a href="#membership" onClick={() => setActiveTab("membership")}
-          className={`block px-6 py-4 hover:bg-primary hover:text-white ${getLinkClass("membership")}`}>
+            className={`block px-6 py-4 hover:bg-primary hover:text-white ${getLinkClass("membership")}`}>
             Membership
           </a>
 
           <a href="#contact" onClick={() => setActiveTab("contact")}
-          className={`block px-6 py-4 hover:bg-primary hover:text-white ${getLinkClass("contact")}`}>
+            className={`block px-6 py-4 hover:bg-primary hover:text-white ${getLinkClass("contact")}`}>
             Contact
           </a>
         </div>
@@ -109,3 +109,5 @@ export default function Navbar() {
 
   );
 }
+
+export default Navbar;

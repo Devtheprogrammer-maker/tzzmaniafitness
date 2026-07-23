@@ -8,8 +8,7 @@ import {
   BoltIcon
 } from "@heroicons/react/24/solid";
 
-
-export default function Hero() {
+const Hero: React.FC = () => {
   const [picture, setPicture] = useState(dumbbell);
 
   useEffect(() => {
@@ -96,3 +95,4 @@ export default function Hero() {
 
   );
 }
+export default Hero;

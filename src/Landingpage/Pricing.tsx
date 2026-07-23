@@ -63,7 +63,7 @@ const plans = [
   }
 ];
 
-export default function Pricing() {
+const Pricing: React.FC = () => {
   return (
     <section id="membership" className="bg-background border-t border-slate-900 py-24 text-text">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -148,3 +148,5 @@ export default function Pricing() {
     </section>
   );
 }
+
+export default Pricing;

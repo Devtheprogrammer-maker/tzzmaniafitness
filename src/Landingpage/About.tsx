@@ -1,13 +1,13 @@
-import { 
-  CheckCircleIcon, 
-  UsersIcon,  
-  ClockIcon,  
-  WrenchScrewdriverIcon, 
+import {
+  CheckCircleIcon,
+  UsersIcon,
+  ClockIcon,
+  WrenchScrewdriverIcon,
   ShieldCheckIcon,
   ChatBubbleLeftRightIcon
 } from '@heroicons/react/24/solid';
 
-export default function About() {
+const About: React.FC = () => {
   const advantages = [
     { title: "Affordable Memberships", desc: "Premium training setups accessible on any budget tier." },
     { title: "Clean Facilities", desc: "Deep cleaned daily with medical-grade equipment sanitizers." },
@@ -27,7 +27,7 @@ export default function About() {
   return (
     <section id="about" className="py-24 bg-background text-text selection:bg-primary/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Section Header Elements */}
         <div className="text-center max-w-3xl mx-auto mb-20">
           <span className="text-xs font-bold uppercase tracking-widest text-secondary bg-secondary/10 px-4 py-1.5 rounded-full border border-secondary/20">
@@ -44,12 +44,12 @@ export default function About() {
 
         {/* Core Layout Split Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-start">
-          
+
           {/* Left Column: Detailed Feature Value Blocks */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {advantages.map((item, idx) => (
-              <div 
-                key={idx} 
+              <div
+                key={idx}
                 className="p-5 rounded-2xl border border-white/5 bg-surface/40 backdrop-blur-sm shadow-sm transition-all duration-300 hover:border-primary/30 hover:bg-surface/60 group"
               >
                 <div className="flex items-center gap-3 mb-2">
@@ -67,14 +67,14 @@ export default function About() {
 
           {/* Right Column: Quantitative Numbers Layout + Human Identity Quote */}
           <div className="flex flex-col gap-8">
-            
+
             {/* Metric Analytics Grid */}
             <div className="grid grid-cols-2 gap-4">
               {statistics.map((stat, idx) => {
                 const StatIcon = stat.icon;
                 return (
-                  <div 
-                    key={idx} 
+                  <div
+                    key={idx}
                     className="p-6 rounded-2xl bg-gradient-to-br from-surface to-background border border-white/10 text-center relative overflow-hidden group shadow-md"
                   >
                     <div className="absolute top-3 right-3 text-white/5 group-hover:text-secondary/10 transition-colors">
@@ -117,3 +117,5 @@ export default function About() {
     </section>
   );
 }
+
+export default About; 
