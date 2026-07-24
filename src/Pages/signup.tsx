@@ -48,7 +48,7 @@ const Signup: React.FC = () => {
                     <h1 className="text-4xl sm:text-5xl font-black uppercase tracking-tight leading-none mb-4">
                         Membership Registration<br />
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
-                            Opening Soon
+                            Opening Soon!
                         </span>
                     </h1>
 
