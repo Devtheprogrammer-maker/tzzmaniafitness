@@ -19,7 +19,7 @@ const Footer: React.FC = () => {
                         rel="noopener noreferrer"
                         className="font-semibold text-slate-400 hover:text-primary transition-colors underline underline-offset-4 decoration-slate-800 hover:decoration-primary"
                     >
-                        Devin Vivas
+                        Devin I. Vivas
                     </a>
                 </div>
 

@@ -6,6 +6,8 @@ import { router } from './router.tsx';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
+    {/* React Router, take control of routing for this application and use this router configuration. */}
     <RouterProvider router={router} />
+
   </StrictMode>,
 )

@@ -1,12 +1,10 @@
 import logo from "../../public/logo.jpg";
 import { useState } from "react";
 import { Link } from 'react-router-dom';
-// Import HashLink from the new package
 import { HashLink } from 'react-router-hash-link';
 
 const Navbar: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
-  // Initialize without the '#' character
   const [activeTab, setActiveTab] = useState("index");
 
   const getLinkClass = (tabName: string) => {

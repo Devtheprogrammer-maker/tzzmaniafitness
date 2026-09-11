@@ -1,17 +1,22 @@
 import Navbar from './components/Navbar.tsx';
-import Index from './Pages/index.tsx'
 import Footer from './components/Footer.tsx'
+import { Outlet } from "react-router-dom"
+import AuthProvider from './context/AuthContext.tsx';
+
 
 export default function App() {
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased">
+    <AuthProvider>
+      <div className="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased">
+        <Navbar />
+        <main>
+          {/* Active child routes (Index, Signup, Login) will render here */}
+          <Outlet />
 
-      <Navbar />
-      <main>
-        <Index />
-      </main>
-
-      <Footer />
-    </div>
+        </main>
+        <Footer />
+      </div>
+    </AuthProvider>
   );
 }
