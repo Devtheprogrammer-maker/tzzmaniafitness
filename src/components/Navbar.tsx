@@ -2,6 +2,7 @@ import logo from "../../public/logo.jpg";
 import { useState } from "react";
 import { Link } from 'react-router-dom';
 import { HashLink } from 'react-router-hash-link';
+import { useAuth } from "../context/AuthContext";
 
 const Navbar: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -14,6 +15,9 @@ const Navbar: React.FC = () => {
 
     return `${baseClass} ${activeTab === tabName ? activeClass : inactiveClass}`;
   };
+
+  const { userObj } = useAuth();
+
 
   return (
     <nav className="sticky top-0 z-50 flex items-center justify-between bg-border/60 backdrop-blur-md px-6 py-4 shadow-md text-white">
@@ -71,11 +75,11 @@ const Navbar: React.FC = () => {
       </div>
 
       {/* Button */}
-      <Link to="/signup">
+      <Link to={userObj ? "dashboard" : "login"}>
         <button
           className="rounded-full bg-primary px-5 py-2 text-white font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer"
         >
-          Sign In
+          Log In
         </button>
       </Link>
 

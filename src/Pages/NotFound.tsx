@@ -1,6 +1,4 @@
 import React from "react";
-import Navbar from "../components/Navbar.tsx";
-import Footer from '../components/Footer.tsx'
 import {
     ExclamationTriangleIcon,
     ArrowLeftIcon,
@@ -11,7 +9,6 @@ const NotFound: React.FC = () => {
     return (
         <section className="bg-background min-h-screen text-text flex flex-col selection:bg-primary/30">
             {/* Mounted Navigation Element */}
-            <Navbar />
 
             {/* Main Content Layout Container */}
             <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 relative overflow-hidden">
@@ -71,7 +68,6 @@ const NotFound: React.FC = () => {
 
                 </div>
             </div>
-            <Footer />
         </section>
     );
 };

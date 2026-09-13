@@ -5,6 +5,8 @@ import Signup from "./Pages/signup.tsx"
 import Login from "./Pages/login.tsx"
 import NotFound from './Pages/NotFound.tsx';
 import Dashboard from './Pages/dashboard.tsx';
+import ResetPasswordPageEmail from './Pages/passwordResetEmail.tsx';
+import ResetPasswordPage from './Pages/passwordReset.tsx';
 //import Upcoming from "./Pages/upcoming.tsx";
 
 export const router = createBrowserRouter([
@@ -28,6 +30,14 @@ export const router = createBrowserRouter([
             {
                 path: '/dashboard',
                 element: <Dashboard />
+            },
+            {
+                path: 'reset-password-email',
+                element: <ResetPasswordPageEmail />
+            },
+            {
+                path: '/reset-password/:token',
+                element: <ResetPasswordPage />
             },
             {
                 path: "*",

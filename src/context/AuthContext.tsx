@@ -1,4 +1,6 @@
-import { createContext, useState, useContext } from "react";
+import { useState, useEffect, createContext, useContext } from "react";
+
+const API_URL = "http://localhost:4000";
 
 type User = {
     id: number;
@@ -9,16 +11,47 @@ type User = {
 type UserContextType = {
     userObj: User | null;
     setUserObj: React.Dispatch<React.SetStateAction<User | null>>;
+    isLoading: boolean;
 };
 
 export const UserContext = createContext<UserContextType | null>(null);
 
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
-
     const [userObj, setUserObj] = useState<User | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const checkAuth = async () => {
+            try {
+                const response = await fetch(`${API_URL}/api/auth/me`, {
+                    credentials: "include",
+                });
+                if (response.status === 401) {
+                    setUserObj(null);
+                    return;
+                }
+
+                if (!response.ok) {
+                    console.error("Authentication check failed:", response.status);
+                    setUserObj(null);
+                    return;
+                }
+
+                const data = await response.json();
+
+                setUserObj(data.user);
+            } catch (error) {
+                console.error("Failed to check authentication:", error);
+                setUserObj(null);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        checkAuth();
+    }, [])
 
     return (
-        <UserContext.Provider value={{ userObj, setUserObj }}>
+        <UserContext.Provider value={{ userObj, setUserObj, isLoading }}>
             {children}
         </UserContext.Provider>
     );
