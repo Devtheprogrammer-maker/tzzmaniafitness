@@ -30,7 +30,7 @@ const PLANS_DATA = [
   },
   {
     name: 'Monthly Pass',
-    monthlyPrice: 75,
+    monthlyPrice: 70,
     billing: '/ Month',
     isPopular: false,
     perks: [
@@ -44,7 +44,7 @@ const PLANS_DATA = [
     name: 'Monthly Pass with Trainer',
     monthlyPrice: 95,
     billing: '/ Month',
-    isPopular: true, 
+    isPopular: true,
     perks: [
       'All Standard Monthly Pass Perks',
       'Monday - Friday Floor Access',
@@ -88,7 +88,7 @@ const flexContainerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.08 } 
+    transition: { staggerChildren: 0.08 }
   }
 };
 
@@ -111,8 +111,8 @@ const Pricing: React.FC = () => {
   const [isAnnual, setIsAnnual] = useState(false);
 
   return (
-    <motion.section 
-      id="membership" 
+    <motion.section
+      id="membership"
       variants={sectionVariants}
       initial="hidden"
       whileInView="visible"
@@ -135,19 +135,19 @@ const Pricing: React.FC = () => {
         </motion.div>
 
         {/* Interactive Catchy Billing Toggle Switch */}
-        <motion.div 
-          variants={headerVariants} 
+        <motion.div
+          variants={headerVariants}
           className="flex items-center justify-center gap-4 mb-16"
         >
           <span className={`text-sm font-bold uppercase tracking-wider transition-colors ${!isAnnual ? 'text-primary' : 'text-slate-400'}`}>
             Monthly
           </span>
-          <button 
+          <button
             onClick={() => setIsAnnual(!isAnnual)}
             className="w-14 h-8 bg-slate-800 rounded-full p-1 transition-colors relative border border-white/10 hover:border-primary/40"
             aria-label="Toggle annual billing discount"
           >
-            <motion.div 
+            <motion.div
               layout
               className="w-6 h-6 rounded-full bg-gradient-to-r from-primary to-secondary"
               animate={{ x: isAnnual ? 22 : 0 }}
@@ -155,7 +155,7 @@ const Pricing: React.FC = () => {
             />
           </button>
           <span className={`text-sm font-bold uppercase tracking-wider transition-colors flex items-center gap-1.5 ${isAnnual ? 'text-secondary' : 'text-slate-400'}`}>
-            Yearly 
+            Yearly
             {/* <span className="text-[10px] font-black tracking-widest bg-secondary/20 text-secondary border border-secondary/30 px-2 py-0.5 rounded-md normal-case">
               SAVE 20%
             </span> */}
@@ -167,11 +167,11 @@ const Pricing: React.FC = () => {
           {PLANS_DATA.map((plan, index) => {
             // Calculate real-time value changes based on pricing toggle layout
             const calculatedPrice = isAnnual && plan.billing === '/ Month'
-              ? Math.floor(plan.monthlyPrice * 12 ) // multiply by * 0.8 to get 20% Discount calculated annually
+              ? Math.floor(plan.monthlyPrice * 12) // multiply by * 0.8 to get 20% Discount calculated annually
               : plan.monthlyPrice;
 
-            const calculatedBillingLabel = isAnnual && plan.billing === '/ Month' 
-              ? '/ Year' 
+            const calculatedBillingLabel = isAnnual && plan.billing === '/ Month'
+              ? '/ Year'
               : plan.billing;
 
             return (
@@ -179,11 +179,10 @@ const Pricing: React.FC = () => {
                 key={index}
                 variants={cardVariants}
                 whileHover={{ y: -8, transition: { duration: 0.3, ease: "easeOut" } }}
-                className={`p-[2px] rounded-2xl flex flex-col w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] xl:w-[calc(20%-20px)] min-w-[250px] max-w-[340px] transition-shadow duration-300 relative group ${
-                  plan.isPopular
+                className={`p-[2px] rounded-2xl flex flex-col w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] xl:w-[calc(20%-20px)] min-w-[250px] max-w-[340px] transition-shadow duration-300 relative group ${plan.isPopular
                     ? 'bg-gradient-to-b from-primary to-secondary shadow-[0_0_30px_rgba(242,17,79,0.15)] xl:scale-105 z-10'
                     : 'bg-white/5 hover:bg-gradient-to-b hover:from-primary/30 hover:to-secondary/30'
-                }`}
+                  }`}
               >
                 {/* Popular Card Interactive Outer Glow Accent Layer */}
                 {plan.isPopular && (
@@ -208,7 +207,7 @@ const Pricing: React.FC = () => {
 
                     {/* Pricing Frame */}
                     <div className="py-6 flex items-baseline gap-1 overflow-hidden">
-                      <motion.span 
+                      <motion.span
                         key={calculatedPrice}
                         initial={{ y: 20, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
@@ -239,11 +238,10 @@ const Pricing: React.FC = () => {
                     whileHover="hover"
                     whileTap="tap"
                     href="/pay"
-                    className={`w-full font-bold py-3 px-4 rounded-xl text-center text-sm uppercase tracking-wider shadow-md transition-all ${
-                      plan.isPopular
+                    className={`w-full font-bold py-3 px-4 rounded-xl text-center text-sm uppercase tracking-wider shadow-md transition-all ${plan.isPopular
                         ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-primary/20'
                         : 'bg-slate-900 border border-slate-800 text-white hover:border-slate-700 hover:bg-slate-800 shadow-black/50'
-                    }`}
+                      }`}
                   >
                     Select Plan
                   </motion.a>
