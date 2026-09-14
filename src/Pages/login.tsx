@@ -13,6 +13,11 @@ const Login: React.FC = () => {
     const navigate = useNavigate();
     const { setUserObj } = useAuth();
 
+    const params = new URLSearchParams(window.location.search);
+    const message = params.get('message');
+    const verified = params.get('verified');
+
+
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         setError("");
@@ -85,6 +90,26 @@ const Login: React.FC = () => {
                                     </div>
                                 </motion.div>
                             )}
+
+                            {message && (
+                                <motion.div
+                                    initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                                    animate={{ opacity: 1, height: "auto", marginBottom: 24 }}
+                                    exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                                    transition={{ duration: 0.25, ease: "easeOut" }}
+                                    className="overflow-hidden"
+                                >
+                                    <div
+                                        className={`rounded-xl border px-4 py-3 ${verified === 'true'
+                                            ? "border-success/30 bg-success/10"
+                                            : "border-danger/30 bg-danger/10"
+                                            }`}
+                                    >
+                                        <p className={`text-sm ${verified === 'true' ? 'text-success' : 'text-danger'}`}>{message}</p>
+                                    </div>
+                                </motion.div>
+                            )}
+
                         </AnimatePresence>
 
                         <form onSubmit={handleSubmit} className="space-y-5">

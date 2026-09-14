@@ -36,7 +36,7 @@ const Signup: React.FC = () => {
             }
 
             setSuccess(true);
-            setTimeout(() => navigate("/dashboard", { replace: true }), 2000);
+            setTimeout(() => navigate("/dashboard", { replace: true }), 7000);
         } catch (err) {
             setError(`Could not reach the server. Please try again. Error code: ${err}`);
         } finally {
