@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 
-const API_URL = "http://localhost:4000";
+const API_URL = import.meta.env.VITE_API_URL;
 
 const Signup: React.FC = () => {
     const [name, setName] = useState("");

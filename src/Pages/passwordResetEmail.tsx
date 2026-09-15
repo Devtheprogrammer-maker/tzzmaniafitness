@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Link } from "react-router-dom";
 
-const API_URL = "http://localhost:4000";
+const API_URL = import.meta.env.VITE_API_URL;
 
 const ResetPasswordPageEmail: React.FC = () => {
     const [email, setEmail] = useState("");
