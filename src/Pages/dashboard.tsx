@@ -8,6 +8,7 @@ const Dashboard: React.FC = () => {
     const { userObj, setUserObj, isLoading } = useAuth();
     const navigate = useNavigate();
 
+
     useEffect(() => {
 
         if (!isLoading && !userObj) {
@@ -15,8 +16,6 @@ const Dashboard: React.FC = () => {
             // <Navigate to="/login" replace />;
         }
     }, [userObj, navigate, isLoading])
-
-    if (isLoading) return <p>Loading...</p>;
 
     async function LogOut() {
         try {
@@ -45,14 +44,6 @@ const Dashboard: React.FC = () => {
 
         </>
     );
-
-    // if (!userObj) {
-    //     return <p>Not logged in</p>;
-    // }
-
-    // return <span>{userObj.name}</span>;
-
-    // OR {userObj ? userObj.name : "Not Logged In "}
 }
 
 export default Dashboard;

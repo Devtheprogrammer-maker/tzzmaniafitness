@@ -1,70 +1,8 @@
 import { CheckIcon } from "@heroicons/react/24/solid"
 import { easeInOut, motion, type Variants } from 'motion/react'
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
-// 1. Static array extracted outside component scope and improved with keys casing
-const PLANS_DATA = [
-  {
-    name: 'Day Pass',
-    monthlyPrice: 10,
-    billing: '/ Access',
-    isPopular: false,
-    perks: [
-      'Single 2-Hour Training Session',
-      'Full Access to Free Weights & Machines',
-      'Valid for Any Scheduled Slot',
-      'Restroom Amenities'
-    ]
-  },
-  {
-    name: 'Weekly Pass',
-    monthlyPrice: 35,
-    billing: '/ Week',
-    isPopular: false,
-    perks: [
-      'Valid for 5 Days (Mon - Fri)',
-      'Up to 2 Hours Per Daily Session',
-      'Full Access to All Gym Facilities',
-      'No Pre-Booking Required'
-    ]
-  },
-  {
-    name: 'Monthly Pass',
-    monthlyPrice: 70,
-    billing: '/ Month',
-    isPopular: false,
-    perks: [
-      'Monday - Friday Floor Access',
-      '2-Hour Standard Training Window',
-      'Access to Modern Cable & Cardio Systems',
-      'Restroom Amenities'
-    ]
-  },
-  {
-    name: 'Monthly Pass with Trainer',
-    monthlyPrice: 95,
-    billing: '/ Month',
-    isPopular: true,
-    perks: [
-      'All Standard Monthly Pass Perks',
-      'Monday - Friday Floor Access',
-      '1-on-1 Guided Coaching Sessions',
-      'Custom Workout Program Architecture'
-    ]
-  },
-  {
-    name: 'Monthly Pass with Trainer and Saturdays',
-    monthlyPrice: 115,
-    billing: '/ Month',
-    isPopular: false,
-    perks: [
-      'Full 6-Day Access (Mon - Sat)',
-      'Includes All Public Holiday Slots',
-      'Dedicated Professional Coaching',
-      'Maximum Training Flexibility'
-    ]
-  }
-];
+const API_URL = import.meta.env.VITE_API_URL;
 
 // 2. Framer Motion variant orchestrations
 const sectionVariants: Variants = {
@@ -107,8 +45,48 @@ const buttonVariants: Variants = {
   tap: { scale: 0.98, y: 0 }
 };
 
+type Membership = {
+  name: string,
+  price: number,
+  type: string,
+  amenities: string,
+  is_popular: boolean
+
+}
+
 const Pricing: React.FC = () => {
   const [isAnnual, setIsAnnual] = useState(false);
+  const [memberships, setMemberships] = useState<Membership[]>([]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const getMembership = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/membership/get-memberships`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
+        });
+
+        if (!res.ok) {
+          throw new Error(`Request failed with status ${res.status}`);
+        }
+
+        const data: Membership[] = await res.json();
+        setMemberships(data);
+      } catch (error) {
+        if ((error as Error).name === "AbortError") return; // expected on cleanup
+        console.error(error);
+      }
+    };
+
+    getMembership();
+
+    return () => {
+      controller.abort();
+    };
+  }, []);
 
   return (
     <motion.section
@@ -156,6 +134,8 @@ const Pricing: React.FC = () => {
           </button>
           <span className={`text-sm font-bold uppercase tracking-wider transition-colors flex items-center gap-1.5 ${isAnnual ? 'text-secondary' : 'text-slate-400'}`}>
             Yearly
+
+
             {/* <span className="text-[10px] font-black tracking-widest bg-secondary/20 text-secondary border border-secondary/30 px-2 py-0.5 rounded-md normal-case">
               SAVE 20%
             </span> */}
@@ -164,28 +144,28 @@ const Pricing: React.FC = () => {
 
         {/* Dynamic Responsive Flex Layout */}
         <motion.div variants={flexContainerVariants} className="flex flex-wrap justify-center gap-6 items-stretch">
-          {PLANS_DATA.map((plan, index) => {
+          {memberships.map((plan, index) => {
             // Calculate real-time value changes based on pricing toggle layout
-            const calculatedPrice = isAnnual && plan.billing === '/ Month'
-              ? Math.floor(plan.monthlyPrice * 12) // multiply by * 0.8 to get 20% Discount calculated annually
-              : plan.monthlyPrice;
+            const calculatedPrice = isAnnual && plan.type === 'monthly'
+              ? Math.floor(plan.price * 12) // multiply by * 0.8 to get 20% Discount calculated annually
+              : plan.price;
 
-            const calculatedBillingLabel = isAnnual && plan.billing === '/ Month'
-              ? '/ Year'
-              : plan.billing;
+            const calculatedBillingLabel = isAnnual && plan.type === 'monthly'
+              ? 'annual'
+              : plan.type;
 
             return (
               <motion.div
                 key={index}
                 variants={cardVariants}
                 whileHover={{ y: -8, transition: { duration: 0.3, ease: "easeOut" } }}
-                className={`p-[2px] rounded-2xl flex flex-col w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] xl:w-[calc(20%-20px)] min-w-[250px] max-w-[340px] transition-shadow duration-300 relative group ${plan.isPopular
-                    ? 'bg-gradient-to-b from-primary to-secondary shadow-[0_0_30px_rgba(242,17,79,0.15)] xl:scale-105 z-10'
-                    : 'bg-white/5 hover:bg-gradient-to-b hover:from-primary/30 hover:to-secondary/30'
+                className={`p-[2px] rounded-2xl flex flex-col w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] xl:w-[calc(20%-20px)] min-w-[250px] max-w-[340px] transition-shadow duration-300 relative group ${plan.is_popular
+                  ? 'bg-gradient-to-b from-primary to-secondary shadow-[0_0_30px_rgba(242,17,79,0.15)] xl:scale-105 z-10'
+                  : 'bg-white/5 hover:bg-gradient-to-b hover:from-primary/30 hover:to-secondary/30'
                   }`}
               >
                 {/* Popular Card Interactive Outer Glow Accent Layer */}
-                {plan.isPopular && (
+                {plan.is_popular && (
                   <div className="absolute inset-0 bg-gradient-to-b from-primary to-secondary opacity-20 blur-xl -z-10 group-hover:opacity-40 transition-opacity duration-300" />
                 )}
 
@@ -193,7 +173,7 @@ const Pricing: React.FC = () => {
                 <div className="bg-surface rounded-[14px] p-6 flex flex-col h-full justify-between relative overflow-hidden flex-1">
 
                   {/* Popular Badge Accent */}
-                  {plan.isPopular && (
+                  {plan.is_popular && (
                     <span className="absolute top-3 right-3 bg-gradient-to-r from-primary to-secondary text-[8px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full text-white shadow-sm shadow-black/50">
                       Popular
                     </span>
@@ -223,8 +203,8 @@ const Pricing: React.FC = () => {
 
                     {/* Perks List */}
                     <ul className="space-y-3 mb-8">
-                      {plan.perks.map((perk, perkIndex) => (
-                        <li className="flex items-start gap-2.5 text-left group/li" key={perkIndex}>
+                      {plan.amenities.split(',').map((perk, perkIndex) => (
+                        <li className="flex items-start gap-2.5 text-left group/li" key={perkIndex} >
                           <CheckIcon className="h-4 w-4 text-secondary shrink-0 mt-0.5 group-hover/li:scale-125 transition-transform" />
                           <span className="text-sm text-slate-300 leading-snug group-hover/li:text-white transition-colors">{perk}</span>
                         </li>
@@ -238,9 +218,9 @@ const Pricing: React.FC = () => {
                     whileHover="hover"
                     whileTap="tap"
                     href="/pay"
-                    className={`w-full font-bold py-3 px-4 rounded-xl text-center text-sm uppercase tracking-wider shadow-md transition-all ${plan.isPopular
-                        ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-primary/20'
-                        : 'bg-slate-900 border border-slate-800 text-white hover:border-slate-700 hover:bg-slate-800 shadow-black/50'
+                    className={`w-full font-bold py-3 px-4 rounded-xl text-center text-sm uppercase tracking-wider shadow-md transition-all ${plan.is_popular
+                      ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-primary/20'
+                      : 'bg-slate-900 border border-slate-800 text-white hover:border-slate-700 hover:bg-slate-800 shadow-black/50'
                       }`}
                   >
                     Select Plan

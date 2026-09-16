@@ -5,11 +5,57 @@ import {
     PaperAirplaneIcon,
     ChatBubbleLeftRightIcon
 } from '@heroicons/react/24/solid';
+import { useState } from 'react';
+import { motion, AnimatePresence } from "motion/react";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function Contact() {
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [subject, setSubject] = useState('');
+    const [message, setMessage] = useState('');
+    const [sending, setSending] = useState(false);
+    const [error, setError] = useState('');
+    const [success, setSucess] = useState(false);
+
     // Prevent actual form submissions for now
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        setError('');
+
+        if (!email || !subject || !message || !name) {
+            setError("Please enter all fields!");
+            return;
+        }
+
+        setSending(true);
+        try {
+            const response = await fetch(`${API_URL}/api/index/send-email`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({ name, email, subject, message })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                setError(data.error || data.message || "Failed to send message");
+                return;
+            }
+
+            setName('');
+            setEmail('');
+            setSubject('');
+            setMessage('');
+            setSucess(true);
+        } catch (err) {
+            console.error(err);
+            setError("Something went wrong. Please try again.");
+        } finally {
+            setSending(false);
+        }
     };
 
     return (
@@ -100,69 +146,111 @@ export default function Contact() {
 
                     {/* Right Column: Interactive Email Form UI (Spans 3 columns) */}
                     <div className="lg:col-span-3 p-8 rounded-2xl border border-white/10 bg-gradient-to-br from-surface to-background shadow-xl relative">
+                        <AnimatePresence mode="wait">
+                            {success ? (
+                                <motion.div
+                                    key="success"
+                                    initial={{ opacity: 0, y: 8 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.35, ease: "easeOut" }}
+                                    className="text-center"
+                                >
+                                    <div className="mx-auto mb-5 h-14 w-14 rounded-full bg-secondary/10 border border-secondary/30 flex items-center justify-center">
+                                        <svg className="h-6 w-6 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                        </svg>
+                                    </div>
+                                    <h2 className="text-2xl font-black uppercase tracking-tight text-white mb-3">
+                                        Your Message has been sent!
+                                    </h2>
+                                    <p className="text-sm text-slate-400 leading-relaxed">
+                                        We will get back to you within 3-4 working days.
+                                    </p>
+                                </motion.div>
+                            ) : (<motion.div>
+                                <h3 className="text-xl font-bold text-white mb-6 uppercase tracking-tight">Send a Quick Message</h3>
+                                <AnimatePresence>
+                                    {error && (
+                                        <motion.div
+                                            initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                                            animate={{ opacity: 1, height: "auto", marginBottom: 24 }}
+                                            exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                                            transition={{ duration: 0.25, ease: "easeOut" }}
+                                            className="overflow-hidden"
+                                        >
+                                            <div className="rounded-xl border border-danger/30 bg-danger/10 px-4 py-3">
+                                                <p className="text-sm text-danger">{error}</p>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
 
-                        {/* Future development tag */}
-                        <div className="absolute top-4 right-4 bg-slate-900 border border-slate-800 text-[10px] font-bold text-slate-500 uppercase tracking-widest px-2.5 py-1 rounded-full">
-                            Form Coming Soon
-                        </div>
+                                <form onSubmit={handleSubmit} className="space-y-5">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                        <div>
+                                            <label htmlFor='name' className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Full Name</label>
+                                            <input
+                                                id='name'
+                                                type="text"
+                                                value={name}
+                                                onChange={(e) => setName(e.target.value)}
+                                                required
+                                                placeholder="Your Name"
+                                                className="w-full bg-slate-950 border border-slate-900 rounded-xl px-4 py-3 text-sm text-slate-500 placeholder-slate-700  focus:outline-none"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label htmlFor='email' className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Email Address</label>
+                                            <input
+                                                id='email'
+                                                type="email"
+                                                value={email}
+                                                onChange={(e) => setEmail(e.target.value)}
+                                                required
+                                                placeholder="yourname@example.com"
+                                                className="w-full bg-slate-950 border border-slate-900 rounded-xl px-4 py-3 text-sm text-slate-500 placeholder-slate-700  focus:outline-none"
+                                            />
+                                        </div>
+                                    </div>
 
-                        <h3 className="text-xl font-bold text-white mb-6 uppercase tracking-tight">Send a Quick Message</h3>
+                                    <div>
+                                        <label htmlFor='subject' className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Subject</label>
+                                        <input
+                                            id='subject'
+                                            type="text"
+                                            value={subject}
+                                            onChange={(e) => setSubject(e.target.value)}
+                                            required
+                                            placeholder="Membership Inquiry / Personal Training"
+                                            className="w-full bg-slate-950 border border-slate-900 rounded-xl px-4 py-3 text-sm text-slate-500 placeholder-slate-700  focus:outline-none"
+                                        />
+                                    </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-5">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                                <div>
-                                    <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Full Name</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Devin Vivas"
-                                        disabled
-                                        className="w-full bg-slate-950 border border-slate-900 rounded-xl px-4 py-3 text-sm text-slate-500 placeholder-slate-700 cursor-not-allowed focus:outline-none"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Email Address</label>
-                                    <input
-                                        type="email"
-                                        placeholder="you@example.com"
-                                        disabled
-                                        className="w-full bg-slate-950 border border-slate-900 rounded-xl px-4 py-3 text-sm text-slate-500 placeholder-slate-700 cursor-not-allowed focus:outline-none"
-                                    />
-                                </div>
-                            </div>
+                                    <div>
+                                        <label htmlFor='message' className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Your Message</label>
+                                        <textarea
+                                            id='message'
+                                            value={message}
+                                            onChange={(e) => setMessage(e.target.value)}
+                                            required
+                                            rows={8}
+                                            placeholder="Tell us about your fitness targets..."
+                                            className="w-full bg-slate-950 border border-slate-900 rounded-xl px-4 py-3 text-sm text-slate-500 placeholder-slate-700 resize-none  focus:outline-none"
+                                        ></textarea>
+                                    </div>
 
-                            <div>
-                                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Subject</label>
-                                <input
-                                    type="text"
-                                    placeholder="Membership Inquiry / Personal Training"
-                                    disabled
-                                    className="w-full bg-slate-950 border border-slate-900 rounded-xl px-4 py-3 text-sm text-slate-500 placeholder-slate-700 cursor-not-allowed focus:outline-none"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Your Message</label>
-                                <textarea
-                                    rows={8}
-                                    placeholder="Tell us about your fitness targets..."
-                                    disabled
-                                    className="w-full bg-slate-950 border border-slate-900 rounded-xl px-4 py-3 text-sm text-slate-500 placeholder-slate-700 resize-none cursor-not-allowed focus:outline-none"
-                                ></textarea>
-                            </div>
-
-                            <button
-                                type="submit"
-                                disabled
-                                className="w-full bg-slate-900 text-slate-600 border border-slate-800 font-bold py-3.5 px-6 rounded-xl text-center flex items-center justify-center gap-2 cursor-not-allowed transition-all"
-                            >
-                                <PaperAirplaneIcon className="h-4 w-4" />
-                                SendMessage
-                            </button>
-                        </form>
+                                    <button
+                                        type="submit"
+                                        className="w-full bg-slate-900 text-slate-600 border border-slate-800 font-bold py-3.5 px-6 rounded-xl text-center flex items-center justify-center gap-2  transition-all"
+                                    >
+                                        <PaperAirplaneIcon className="h-4 w-4" />
+                                        {sending ? 'Sending...' : 'Send Message'}
+                                    </button>
+                                </form>
+                            </motion.div>)}
+                        </AnimatePresence>
                     </div>
-
                 </div>
-
             </div>
         </section>
     );
