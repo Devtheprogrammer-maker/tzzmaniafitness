@@ -40,10 +40,10 @@ const cardVariants: Variants = {
   }
 };
 
-const buttonVariants: Variants = {
-  hover: { scale: 1.05, y: -2, transition: { duration: 0.2 } },
-  tap: { scale: 0.98, y: 0 }
-};
+// const buttonVariants: Variants = {
+//   hover: { scale: 1.05, y: -2, transition: { duration: 0.2 } },
+//   tap: { scale: 0.98, y: 0 }
+// };
 
 type Membership = {
   name: string,
@@ -152,7 +152,7 @@ const Pricing: React.FC = () => {
 
             const calculatedBillingLabel = isAnnual && plan.type === 'monthly'
               ? 'annual'
-              : plan.type;
+              : plan.type === 'day_pass' ? 'Day Pass' : plan.type;
 
             return (
               <motion.div
@@ -213,7 +213,7 @@ const Pricing: React.FC = () => {
                   </div>
 
                   {/* Call To Action Button Element */}
-                  <motion.a
+                  {/* <motion.a
                     variants={buttonVariants}
                     whileHover="hover"
                     whileTap="tap"
@@ -224,7 +224,7 @@ const Pricing: React.FC = () => {
                       }`}
                   >
                     Select Plan
-                  </motion.a>
+                  </motion.a> */}
 
                 </div>
               </motion.div>

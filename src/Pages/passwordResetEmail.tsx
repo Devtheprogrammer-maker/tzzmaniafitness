@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -9,6 +9,7 @@ const ResetPasswordPageEmail: React.FC = () => {
     const [error, setError] = useState("");
     const [message, setMessage] = useState("");
     const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -34,7 +35,9 @@ const ResetPasswordPageEmail: React.FC = () => {
                 return;
             }
 
-            setMessage("Check your inbox (or spam) for a reset link. You can safely close this tab.");
+            setMessage("Please check your inbox (or spam) for a reset link.");
+            setTimeout(() => navigate("/login", { replace: true }), 5500);
+
         } catch (error) {
             setError(`Could not reach the server. Please try again. ${error}`);
         } finally {
@@ -70,6 +73,9 @@ const ResetPasswordPageEmail: React.FC = () => {
                                     </h2>
                                     <p className="text-sm text-slate-400 leading-relaxed mb-8">
                                         {message}
+                                        <span className="mt-3 block text-xs font-semibold text-blue-400">
+                                            Redirecting you to the login...
+                                        </span>
                                     </p>
 
                                     <Link

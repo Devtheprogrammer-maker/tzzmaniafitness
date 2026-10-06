@@ -1,8 +1,9 @@
 import { createBrowserRouter } from 'react-router-dom';
-import App from './App.tsx'
-import Index from './Pages/index.tsx'
-import Signup from "./Pages/signup.tsx"
-import Login from "./Pages/login.tsx"
+import App from './App.tsx';
+import NoNav from './NoNav.tsx';
+import Index from './Pages/index.tsx';
+import Signup from "./Pages/signup.tsx";
+import Login from "./Pages/login.tsx";
 import NotFound from './Pages/NotFound.tsx';
 import Dashboard from './Pages/dashboard.tsx';
 import ResetPasswordPageEmail from './Pages/passwordResetEmail.tsx';
@@ -12,11 +13,11 @@ import ResetPasswordPage from './Pages/passwordReset.tsx';
 export const router = createBrowserRouter([
 
     {
-        path: '/',
         element: <App />,
         children: [
             {
-                index: true, // Matches path '/'
+                path: '/',
+                //index: true, // Matches path '/'
                 element: <Index />
             },
             {
@@ -26,10 +27,6 @@ export const router = createBrowserRouter([
             {
                 path: '/login',
                 element: <Login />
-            },
-            {
-                path: '/dashboard',
-                element: <Dashboard />
             },
             {
                 path: 'reset-password-email',
@@ -44,6 +41,18 @@ export const router = createBrowserRouter([
                 element: <NotFound />
             }
         ]
+    },
+    {
+        element: <NoNav />,
+        children: [
+
+            {
+                path: '/dashboard',
+                element: <Dashboard />
+            }
+        ]
     }
 
-], { basename: "/tzzmaniafitness", });
+]);
+
+// { basename: "/tzzmaniafitness", }

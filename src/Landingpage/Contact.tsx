@@ -241,7 +241,20 @@ export default function Contact() {
 
                                     <button
                                         type="submit"
-                                        className="w-full bg-slate-900 text-slate-600 border border-slate-800 font-bold py-3.5 px-6 rounded-xl text-center flex items-center justify-center gap-2  transition-all"
+                                        className="group w-full relative overflow-hidden
+                                            bg-gradient-to-r from-primary to-secondary
+                                            text-white font-bold
+                                            py-3.5 px-6 rounded-xl
+                                            flex items-center justify-center gap-2
+                                            border border-white/10
+                                            shadow-lg shadow-primary/20
+                                            transition-all duration-300
+                                            hover:shadow-xl hover:shadow-primary/30
+                                            hover:-translate-y-0.5
+                                            hover:brightness-110
+                                            active:translate-y-0
+                                            disabled:opacity-60
+                                            disabled:cursor-not-allowed"
                                     >
                                         <PaperAirplaneIcon className="h-4 w-4" />
                                         {sending ? 'Sending...' : 'Send Message'}
