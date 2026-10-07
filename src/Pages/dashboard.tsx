@@ -53,7 +53,7 @@ const Shell = ({ children, isAdmin, logOut }: ShellProps) => (
         <header className="border-b border-border">
             <div className="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
                 <span className="text-sm font-black uppercase tracking-widest text-white">
-                    Tazzmania <span className="text-secondary">Fitness</span>
+                    Tzzmania <span className="text-secondary">Fitness</span>
                     {isAdmin && (
                         <span className="ml-3 text-[10px] font-bold uppercase tracking-widest text-primary bg-primary/10 border border-primary/30 px-2 py-0.5 rounded-full align-middle">
                             Admin
