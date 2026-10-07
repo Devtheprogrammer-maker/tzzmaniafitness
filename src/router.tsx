@@ -29,7 +29,7 @@ export const router = createBrowserRouter([
                 element: <Login />
             },
             {
-                path: 'reset-password-email',
+                path: '/reset-password-email',
                 element: <ResetPasswordPageEmail />
             },
             {

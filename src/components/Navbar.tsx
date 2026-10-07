@@ -75,7 +75,7 @@ const Navbar: React.FC = () => {
       </div>
 
       {/* Button */}
-      <Link to={userObj ? "dashboard" : "login"}>
+      <Link to={userObj ? "/dashboard" : "/login"}>
         <button
           className="rounded-full bg-primary px-5 py-2 text-white font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer"
         >
