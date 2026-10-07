@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { motion } from "motion/react";
 import { useAuth } from "../context/AuthContext";
 
-const API_URL = import.meta.env.VITE_API_URL;
+// const API_URL = import.meta.env.VITE_API_URL;
 
 interface UserInfo {
     name: string;
@@ -97,8 +97,8 @@ const Dashboard: React.FC = () => {
         async function load() {
             try {
                 const url = isAdmin
-                    ? `${API_URL}/api/admin/admin`
-                    : `${API_URL}/api/membership/userInfo`;
+                    ? `/api/admin/admin`
+                    : `/api/membership/userInfo`;
 
                 const res = await fetch(url, {
                     credentials: "include",
@@ -134,7 +134,7 @@ const Dashboard: React.FC = () => {
 
     async function logOut() {
         try {
-            await fetch(`${API_URL}/api/auth/logout`, {
+            await fetch(`/api/auth/logout`, {
                 method: "POST",
                 credentials: "include",
             });

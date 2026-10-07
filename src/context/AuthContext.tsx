@@ -1,6 +1,6 @@
 import { useState, useEffect, createContext, useContext } from "react";
 
-const API_URL = import.meta.env.VITE_API_URL;
+//const API_URL = import.meta.env.VITE_API_URL;
 
 type User = {
     id: number;
@@ -24,7 +24,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     useEffect(() => {
         const checkAuth = async () => {
             try {
-                const response = await fetch(`${API_URL}/api/auth/me`, {
+                const response = await fetch(`/api/auth/me`, {
                     credentials: "include",
                 });
                 if (response.status === 401) {

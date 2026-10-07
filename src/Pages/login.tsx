@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { useAuth } from "../context/AuthContext";
 
-const API_URL = import.meta.env.VITE_API_URL;
+//const API_URL = import.meta.env.VITE_API_URL;
 
 const Login: React.FC = () => {
     const [email, setEmail] = useState("");
@@ -28,7 +28,7 @@ const Login: React.FC = () => {
                 return setError("Please enter a password and username");
             }
 
-            const response = await fetch(`${API_URL}/api/auth/login`, {
+            const response = await fetch(`/api/auth/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",

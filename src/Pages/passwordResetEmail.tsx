@@ -2,7 +2,7 @@ import React, { useState, } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Link, useNavigate } from "react-router-dom";
 
-const API_URL = import.meta.env.VITE_API_URL;
+//const API_URL = import.meta.env.VITE_API_URL;
 
 const ResetPasswordPageEmail: React.FC = () => {
     const [email, setEmail] = useState("");
@@ -22,7 +22,7 @@ const ResetPasswordPageEmail: React.FC = () => {
                 return setError("Please enter your email");
             }
 
-            const response = await fetch(`${API_URL}/api/auth/get-password-reset`, {
+            const response = await fetch(`/api/auth/get-password-reset`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email })

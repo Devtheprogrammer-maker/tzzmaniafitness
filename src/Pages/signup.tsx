@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 
-const API_URL = import.meta.env.VITE_API_URL;
+//const API_URL = import.meta.env.VITE_API_URL;
 
 const Signup: React.FC = () => {
     const [name, setName] = useState("");
@@ -21,7 +21,7 @@ const Signup: React.FC = () => {
         setLoading(true);
 
         try {
-            const response = await fetch(`${API_URL}/api/auth/signup`, {
+            const response = await fetch(`/api/auth/signup`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",

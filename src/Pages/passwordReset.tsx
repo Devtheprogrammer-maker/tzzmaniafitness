@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 
-const API_URL = import.meta.env.VITE_API_URL;
+//const API_URL = import.meta.env.VITE_API_URL;
 
 const ResetPasswordPage: React.FC = () => {
     const { token } = useParams();
@@ -27,7 +27,7 @@ const ResetPasswordPage: React.FC = () => {
                 return setError("Passwords do not match");
             }
 
-            const response = await fetch(`${API_URL}/api/auth/reset-password/${token}`, {
+            const response = await fetch(`/api/auth/reset-password/${token}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ password })
