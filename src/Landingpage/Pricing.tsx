@@ -2,7 +2,7 @@ import { CheckIcon } from "@heroicons/react/24/solid"
 import { easeInOut, motion, type Variants } from 'motion/react'
 import { useEffect, useState } from "react"
 
-const API_URL = import.meta.env.URL;
+const API_URL = import.meta.env.VITE_API;
 
 // 2. Framer Motion variant orchestrations
 const sectionVariants: Variants = {
