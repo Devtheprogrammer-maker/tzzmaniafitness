@@ -6,7 +6,7 @@ import {
   ShieldCheckIcon,
   ChatBubbleLeftRightIcon
 } from '@heroicons/react/24/solid';
-import { easeInOut, motion, type Variants} from 'motion/react';
+import { easeInOut, motion, type Variants } from 'motion/react';
 // import type { Variants } from "framer-motion";
 
 // 1. Static arrays lifted out of component scope to avoid unnecessary memory reallocations
@@ -15,7 +15,7 @@ const ADVANTAGES_DATA = [
   { title: "Clean Facilities", desc: "Deep cleaned daily with medical-grade equipment sanitizers." },
   { title: "Modern Equipment", desc: "Biomechanically advanced cable systems and free-weight arrays." },
   { title: "Flexible Schedule", desc: "Open early and late to seamless fit your busy lifestyle workflow." },
-  { title: "Friendly Staff", desc: "No intimidating toxic fitness culture—just direct support." },
+  { title: "Friendly Staff", desc: "No intimidating toxic fitness culture just direct support." },
   { title: "Personal Training", desc: "Structured workout programming tailored directly to your targets." },
 ];
 
@@ -88,8 +88,8 @@ const quoteCardVariants: Variants = {
 
 const About: React.FC = () => {
   return (
-    <motion.section 
-      id="about" 
+    <motion.section
+      id="about"
       variants={sectionVariants}
       initial="hidden"
       whileInView="visible"
@@ -168,7 +168,7 @@ const About: React.FC = () => {
             </motion.div>
 
             {/* Personality Branding Quote Card */}
-            <motion.div 
+            <motion.div
               variants={quoteCardVariants}
               whileHover={{ scale: 1.01, transition: { duration: 0.2 } }}
               className="relative p-8 rounded-2xl border border-secondary/30 bg-secondary/5 backdrop-blur-md mt-2 group overflow-hidden"

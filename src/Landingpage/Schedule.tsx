@@ -131,7 +131,7 @@ const Schedule: React.FC = () => {
               </div>
             </div>
             <p className="text-sm text-slate-300 leading-relaxed sm:max-w-xs sm:text-right">
-              Come in any time within this window to get your 2 hours in. We're open through most holidays — check for any exceptions around major dates.
+              Come in any time within this window to get your 2 hours in. We're open through most holidays; check for any exceptions around major dates.
             </p>
           </div>
         </motion.div>
@@ -145,7 +145,7 @@ const Schedule: React.FC = () => {
             <ClockIcon className="h-5 w-5 text-primary" />
           </div>
           <p className="text-sm text-slate-300 leading-relaxed">
-            Your 2 hours start the moment you check in, and run anywhere inside the open windows above — no need to arrive at the top of the hour or match anyone else's schedule.
+            Your 2 hours start the moment you start your first exercise, and run anywhere inside the open windows above; no need to arrive at the top of the hour or match anyone else's schedule.
           </p>
         </motion.div>
 
