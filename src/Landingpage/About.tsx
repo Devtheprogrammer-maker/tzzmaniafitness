@@ -1,88 +1,81 @@
+import React from 'react';
 import {
-  CheckCircleIcon,
   UsersIcon,
   ClockIcon,
   WrenchScrewdriverIcon,
   ShieldCheckIcon,
-  ChatBubbleLeftRightIcon
+  ChatBubbleLeftRightIcon,
+  BanknotesIcon,
+  SparklesIcon,
+  CalendarDaysIcon,
+  HeartIcon,
+  UserGroupIcon,
+  ArrowRightIcon
 } from '@heroicons/react/24/solid';
-import { easeInOut, motion, type Variants } from 'motion/react';
-// import type { Variants } from "framer-motion";
+import { easeOut, motion, type Variants } from 'motion/react';
 
-// 1. Static arrays lifted out of component scope to avoid unnecessary memory reallocations
+// Feature advantages enriched with distinct icons
 const ADVANTAGES_DATA = [
-  { title: "Affordable Memberships", desc: "Premium training setups accessible on any budget tier." },
-  { title: "Clean Facilities", desc: "Deep cleaned daily with medical-grade equipment sanitizers." },
-  { title: "Modern Equipment", desc: "Biomechanically advanced cable systems and free-weight arrays." },
-  { title: "Flexible Schedule", desc: "Open early and late to seamless fit your busy lifestyle workflow." },
-  { title: "Friendly Staff", desc: "No intimidating toxic fitness culture just direct support." },
-  { title: "Personal Training", desc: "Structured workout programming tailored directly to your targets." },
+  {
+    title: "Affordable Memberships",
+    desc: "Premium training setups accessible on any budget tier with flexible plans.",
+    icon: BanknotesIcon,
+    featured: false
+  },
+  {
+    title: "Clean Facilities",
+    desc: "Deep cleaned daily with medical-grade equipment sanitizers.",
+    icon: SparklesIcon,
+    featured: false
+  },
+  {
+    title: "Modern Equipment",
+    desc: "Biomechanically advanced cable systems and free-weight arrays.",
+    icon: WrenchScrewdriverIcon,
+    featured: true
+  },
+  {
+    title: "Flexible Schedule",
+    desc: "Open early and late to seamlessly fit your busy lifestyle workflow.",
+    icon: CalendarDaysIcon,
+    featured: false
+  },
+  {
+    title: "Friendly Staff",
+    desc: "No intimidating toxic fitness culture—just direct supportive guidance.",
+    icon: HeartIcon,
+    featured: false
+  },
+  {
+    title: "Personal Training",
+    desc: "Structured workout programming tailored directly to your targets.",
+    icon: UserGroupIcon,
+    featured: true
+  },
 ];
 
 const STATISTICS_DATA = [
   { value: "100+", label: "Active Members", icon: UsersIcon },
   { value: "5+", label: "Years Experience", icon: ShieldCheckIcon },
   { value: "20+", label: "Premium Machines", icon: WrenchScrewdriverIcon },
-  { value: "6", label: "Days Open Weekly", icon: ClockIcon },
+  { value: "6 Days", label: "Open Weekly", icon: ClockIcon },
 ];
 
-// 2. Framer Motion variant architectures
-const sectionVariants = {
+// Animation Variants
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.2, delayChildren: 0.1 }
+    transition: { staggerChildren: 0.1, delayChildren: 0.1 }
   }
 };
 
-const headerVariants = {
-  hidden: { opacity: 0, y: -20 },
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 20 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.6, ease: easeInOut }
-  }
-};
-
-const splitGridVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.15 }
-  }
-};
-
-const leftStaggerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.08 }
-  }
-};
-
-const rightStaggerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1 }
-  }
-};
-
-const itemCardVariants = {
-  hidden: { opacity: 0, y: 25 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: easeInOut }
-  }
-};
-
-const quoteCardVariants: Variants = {
-  hidden: { opacity: 0, scale: 0.95 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    transition: { duration: 0.6, ease: "easeOut" }
+    transition: { duration: 0.5, ease: easeOut }
   }
 };
 
@@ -90,112 +83,134 @@ const About: React.FC = () => {
   return (
     <motion.section
       id="about"
-      variants={sectionVariants}
+      variants={containerVariants}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true, margin: "-100px" }}
-      className="py-24 bg-background text-text selection:bg-primary/30 overflow-hidden"
+      viewport={{ once: true, margin: "-80px" }}
+      className="py-24 bg-background text-text selection:bg-primary/30 relative overflow-hidden"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Subtle Background Glow Elements */}
+      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-secondary/10 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Section Header Elements */}
-        <motion.div variants={headerVariants} className="text-center max-w-3xl mx-auto mb-20">
-          <span className="text-xs font-bold uppercase tracking-widest text-secondary bg-secondary/10 px-4 py-1.5 rounded-full border border-secondary/20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-16">
+
+        {/* Section Header */}
+        <motion.div variants={itemVariants} className="text-center max-w-3xl mx-auto space-y-4">
+          <span className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-widest text-secondary bg-secondary/10 px-4 py-1.5 rounded-full border border-secondary/20">
             Why Choose Tzzmania
           </span>
-          <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tight mt-4 leading-none">
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black uppercase tracking-tight leading-none">
             We Build The Environment,<br />
             <span className="inline-block text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
               You Build The Results
             </span>
           </h2>
-          <p className="text-slate-400 mt-4 text-lg">
+          <p className="text-slate-400 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
             People compare gyms before choosing their home turf. We don't hide our perks. Here is exactly why elite lifters and absolute beginners choose Tzzmania Fitness.
           </p>
         </motion.div>
 
-        {/* Core Layout Split Grid */}
-        <motion.div variants={splitGridVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-start">
-
-          {/* Left Column: Detailed Feature Value Blocks */}
-          <motion.div variants={leftStaggerVariants} className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {ADVANTAGES_DATA.map((item, idx) => (
+        {/* Bento Grid Architecture */}
+        <motion.div variants={containerVariants} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {ADVANTAGES_DATA.map((item, idx) => {
+            const Icon = item.icon;
+            return (
               <motion.div
                 key={idx}
-                variants={itemCardVariants}
-                whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                className="p-5 rounded-2xl border border-white/5 bg-surface/40 backdrop-blur-sm shadow-sm transition-all duration-300 hover:border-primary/30 hover:bg-surface/60 group"
+                variants={itemVariants}
+                whileHover={{ y: -5 }}
+                className={`group relative p-8 rounded-3xl border transition-all duration-300 backdrop-blur-md flex flex-col justify-between overflow-hidden ${item.featured
+                  ? 'border-primary/40 bg-gradient-to-br from-surface/80 via-surface/40 to-primary/5 shadow-lg shadow-primary/5'
+                  : 'border-white/10 bg-surface/30 hover:border-secondary/40 hover:bg-surface/50'
+                  }`}
               >
-                <div className="flex items-center gap-3 mb-2">
-                  <CheckCircleIcon className="h-6 w-6 text-secondary flex-shrink-0 group-hover:scale-110 transition-transform" />
-                  <h3 className="font-bold text-lg text-white group-hover:text-primary transition-colors">
+                {/* Decorative hover gradient border overlay */}
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-secondary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
+                <div>
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 text-primary group-hover:bg-primary group-hover:text-background transition-colors duration-300">
+                      <Icon className="h-6 w-6" />
+                    </div>
+                    {item.featured && (
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-primary bg-primary/10 border border-primary/20 px-3 py-1 rounded-full">
+                        Popular Feature
+                      </span>
+                    )}
+                  </div>
+
+                  <h3 className="text-xl font-bold text-white group-hover:text-primary transition-colors duration-300">
                     {item.title}
                   </h3>
+                  <p className="text-slate-400 text-sm mt-3 leading-relaxed">
+                    {item.desc}
+                  </p>
                 </div>
-                <p className="text-sm text-slate-400 leading-relaxed pl-9">
-                  {item.desc}
-                </p>
               </motion.div>
-            ))}
-          </motion.div>
+            );
+          })}
+        </motion.div>
 
-          {/* Right Column: Quantitative Numbers Layout + Human Identity Quote */}
-          <motion.div variants={rightStaggerVariants} className="flex flex-col gap-8">
-
-            {/* Metric Analytics Grid */}
-            <motion.div variants={leftStaggerVariants} className="grid grid-cols-2 gap-4">
-              {STATISTICS_DATA.map((stat, idx) => {
-                const StatIcon = stat.icon;
-                return (
-                  <motion.div
-                    key={idx}
-                    variants={itemCardVariants}
-                    whileHover={{ scale: 1.03, y: -2, transition: { duration: 0.2 } }}
-                    className="p-6 rounded-2xl bg-gradient-to-br from-surface to-background border border-white/10 text-center relative overflow-hidden group shadow-md"
-                  >
-                    <div className="absolute top-3 right-3 text-white/5 group-hover:text-secondary/10 transition-colors">
-                      <StatIcon className="h-12 w-12" />
-                    </div>
-                    <span className="block text-4xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400 group-hover:from-primary group-hover:to-secondary transition-all duration-500">
-                      {stat.value}
-                    </span>
-                    <span className="block text-xs font-medium uppercase tracking-wider text-slate-400 mt-2">
-                      {stat.label}
-                    </span>
-                  </motion.div>
-                );
-              })}
-            </motion.div>
-
-            {/* Personality Branding Quote Card */}
-            <motion.div
-              variants={quoteCardVariants}
-              whileHover={{ scale: 1.01, transition: { duration: 0.2 } }}
-              className="relative p-8 rounded-2xl border border-secondary/30 bg-secondary/5 backdrop-blur-md mt-2 group overflow-hidden"
-            >
-              <div className="absolute -top-6 -right-6 text-secondary/10 pointer-events-none group-hover:scale-105 group-hover:rotate-6 transition-transform duration-500">
-                <ChatBubbleLeftRightIcon className="h-32 w-32" />
+        {/* Stats Strip */}
+        <motion.div
+          variants={itemVariants}
+          className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 rounded-3xl bg-surface/40 border border-white/10 backdrop-blur-md"
+        >
+          {STATISTICS_DATA.map((stat, idx) => {
+            const StatIcon = stat.icon;
+            return (
+              <div
+                key={idx}
+                className="p-6 rounded-2xl bg-background/50 border border-white/5 text-center flex flex-col items-center justify-center group hover:border-secondary/30 transition-colors"
+              >
+                <StatIcon className="h-6 w-6 text-slate-500 group-hover:text-secondary transition-colors mb-2" />
+                <span className="text-3xl sm:text-4xl font-black tracking-tight text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-primary group-hover:to-secondary transition-all duration-300">
+                  {stat.value}
+                </span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 mt-1">
+                  {stat.label}
+                </span>
               </div>
-              <blockquote className="relative z-10">
-                <p className="text-xl md:text-2xl font-semibold italic text-slate-200 leading-snug">
-                  "The hardest part is walking through the door. We'll help with everything after that."
-                </p>
-                <footer className="mt-4 flex items-center gap-3">
-                  <div className="h-1 w-8 bg-primary rounded-full"></div>
-                  <cite className="not-italic font-bold text-sm uppercase tracking-widest text-primary">
-                    Tzzmania Fitness
-                  </cite>
-                </footer>
-              </blockquote>
-            </motion.div>
+            );
+          })}
+        </motion.div>
 
-          </motion.div>
+        {/* Quote & CTA Card */}
+        <motion.div
+          variants={itemVariants}
+          className="relative rounded-3xl border border-secondary/30 bg-gradient-to-r from-secondary/10 via-surface/60 to-primary/10 p-8 md:p-12 backdrop-blur-md overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8"
+        >
+          <div className="absolute -right-8 -bottom-8 text-white/5 pointer-events-none">
+            <ChatBubbleLeftRightIcon className="h-64 w-64" />
+          </div>
 
+          <div className="relative z-10 max-w-2xl space-y-4">
+            <blockquote className="text-xl sm:text-2xl font-bold italic text-slate-100 leading-snug">
+              "The hardest part is walking through the door. We'll help with everything after that."
+            </blockquote>
+            <div className="flex items-center gap-3">
+              <span className="h-1 w-8 bg-primary rounded-full inline-block" />
+              <cite className="not-italic font-bold text-xs uppercase tracking-widest text-primary">
+                Tzzmania Fitness
+              </cite>
+            </div>
+          </div>
+
+          <motion.a
+            href="#membership"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.98 }}
+            className="relative z-10 shrink-0 inline-flex items-center gap-3 px-8 py-4 rounded-2xl bg-primary text-background font-black uppercase text-sm tracking-wider shadow-lg shadow-primary/25 hover:bg-primary/90 transition-colors"
+          >
+            YOUR NEXT CHAPTER STARTS HERE.
+            <ArrowRightIcon className="h-4 w-4" />
+          </motion.a>
         </motion.div>
 
       </div>
     </motion.section>
   );
-}
+};
 
 export default About;
