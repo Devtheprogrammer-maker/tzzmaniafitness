@@ -1,33 +1,70 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { AnimatePresence, motion, useReducedMotion, type Variants } from "motion/react";
-import { CheckIcon } from "@heroicons/react/24/solid";
-import { Banner, PasswordInput, inputClasses, labelClass } from "../components/AuthUI";
+import { CheckIcon, PlusIcon, XMarkIcon } from "@heroicons/react/24/solid";
+import {
+    Banner,
+    PasswordGuide,
+    PasswordInput,
+    inputClasses,
+    labelClass,
+    passwordProblem,
+} from "../components/AuthUI";
+import {
+    PhoneInput,
+    emptyPhone,
+    formatPhone,
+    isPhoneValid,
+    toE164,
+    type Phone,
+} from "../components/PhoneInput";
+import { TermsModal } from "../components/TermsModal";
+
+const MIN_AGE = 15;
+const MAX_CONTACTS = 2;
+const MIN_BIRTH_YEAR = 1900;
+
+interface Contact {
+    name: string;
+    relationship: string;
+    phone: Phone;
+}
 
 interface FormState {
     name: string;
     username: string;
     email: string;
     password: string;
-    phone: string;
+    phone: Phone;
     dob: string;
-    emergencyName: string;
-    relationship: string;
-    emergencyPhone: string;
+    contacts: Contact[];
+    acceptedTerms: boolean;
 }
 
-type Errors = Partial<Record<keyof FormState, string>>;
+type ContactErrors = Partial<Record<keyof Contact, string>>;
+type Errors = Partial<Record<"name" | "username" | "email" | "password" | "phone" | "dob" | "terms", string>> & {
+    contacts?: ContactErrors[];
+};
+type TextKey = "name" | "username" | "email" | "password" | "dob";
+
+const emptyContact = (country?: string): Contact => ({ name: "", relationship: "", phone: emptyPhone(country) });
 
 const INITIAL: FormState = {
-    name: "", username: "", email: "", password: "",
-    phone: "", dob: "",
-    emergencyName: "", relationship: "", emergencyPhone: "",
+    name: "",
+    username: "",
+    email: "",
+    password: "",
+    phone: emptyPhone(),
+    dob: "",
+    contacts: [emptyContact()],
+    acceptedTerms: false,
 };
 
 const STEPS = [
     { key: "account", label: "Account" },
     { key: "about", label: "About you" },
-    { key: "emergency", label: "Emergency contact" },
+    { key: "emergency", label: "Emergency" },
+    { key: "review", label: "Review" },
 ];
 
 const RELATIONSHIPS = ["Parent", "Partner", "Sibling", "Friend"];
@@ -41,47 +78,94 @@ const MAIL_PROVIDERS: Record<string, { name: string; url: string }> = {
     "icloud.com": { name: "iCloud Mail", url: "https://www.icloud.com/mail" },
 };
 
-const digits = (s: string) => s.replace(/\D/g, "");
+/* ---------- Dates ---------- */
+
+const pad = (n: number) => String(n).padStart(2, "0");
+const toISO = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+function isoYearsAgo(years: number) {
+    const d = new Date();
+    d.setFullYear(d.getFullYear() - years);
+    return toISO(d);
+}
+
+// Age today for a "YYYY-MM-DD" string, using local time so there are no timezone surprises
+function ageOn(iso: string) {
+    const [y, m, d] = iso.split("-").map(Number);
+    const now = new Date();
+    let age = now.getFullYear() - y;
+    if (now.getMonth() + 1 < m || (now.getMonth() + 1 === m && now.getDate() < d)) age--;
+    return age;
+}
+
+function formatDob(iso: string) {
+    const [y, m, d] = iso.split("-").map(Number);
+    return new Intl.DateTimeFormat("en-US", { year: "numeric", month: "long", day: "numeric" }).format(
+        new Date(y, m - 1, d)
+    );
+}
+
+/* ---------- Validation ---------- */
+
+function hasErrors(e: Errors) {
+    const { contacts, ...rest } = e;
+    return Object.values(rest).some(Boolean) || Boolean(contacts?.some((c) => Object.keys(c).length > 0));
+}
 
 function validate(step: number, f: FormState): Errors {
     const e: Errors = {};
+
     if (step === 0) {
         if (!f.name.trim()) e.name = "Enter your full name.";
         if (!/^\S{3,30}$/.test(f.username.trim())) e.username = "Use 3 to 30 characters with no spaces.";
         if (!/^\S+@\S+\.\S+$/.test(f.email.trim())) e.email = "Enter a valid email address.";
-        if (f.password.length < 8) e.password = "Use at least 8 characters.";
-        else if (f.password.length > 72) e.password = "Use 72 characters or fewer.";
+        const pwProblem = passwordProblem(f.password);
+        if (pwProblem) e.password = pwProblem;
     }
+
     if (step === 1) {
-        if (digits(f.phone).length < 7) e.phone = "Enter a valid phone number.";
-        if (!f.dob) e.dob = "Select your date of birth.";
-        else if (new Date(f.dob) > new Date()) e.dob = "Date of birth can't be in the future.";
+        if (!isPhoneValid(f.phone)) e.phone = "Enter your full phone number.";
+
+        if (!f.dob) {
+            e.dob = "Select your date of birth.";
+        } else {
+            const age = ageOn(f.dob);
+            if (Number.isNaN(age) || Number(f.dob.slice(0, 4)) < MIN_BIRTH_YEAR) e.dob = "Enter a valid date of birth.";
+            else if (age < 0) e.dob = "Date of birth can't be in the future.";
+            else if (age < MIN_AGE) e.dob = `You must be at least ${MIN_AGE} years old to sign up.`;
+        }
     }
+
     if (step === 2) {
-        if (!f.emergencyName.trim()) e.emergencyName = "Enter your contact's name.";
-        if (!f.relationship.trim()) e.relationship = "Choose or enter their relationship to you.";
-        if (digits(f.emergencyPhone).length < 7) e.emergencyPhone = "Enter a valid phone number.";
+        const own = isPhoneValid(f.phone) ? toE164(f.phone) : null;
+        const seen = new Set<string>();
+
+        const contacts = f.contacts.map((c) => {
+            const ce: ContactErrors = {};
+            if (!c.name.trim()) ce.name = "Enter this contact's name.";
+            if (!c.relationship.trim()) ce.relationship = "Choose or enter how they're related to you.";
+            if (!isPhoneValid(c.phone)) {
+                ce.phone = "Enter their full phone number.";
+            } else {
+                const p = toE164(c.phone);
+                if (p === own) ce.phone = "Use a different number than your own.";
+                else if (seen.has(p)) ce.phone = "This number is already listed for another contact.";
+                seen.add(p);
+            }
+            return ce;
+        });
+
+        if (contacts.some((c) => Object.keys(c).length > 0)) e.contacts = contacts;
     }
+
+    if (step === 3) {
+        if (!f.acceptedTerms) e.terms = "You need to accept the Terms & Conditions to create your account.";
+    }
+
     return e;
 }
 
-// Password strength: 0 = too short, 1 = okay, 2 = good, 3 = strong
-function passwordLevel(pw: string) {
-    if (pw.length < 8) return 0;
-    const bonus = [
-        pw.length >= 12,
-        /[a-z]/.test(pw) && /[A-Z]/.test(pw),
-        /\d/.test(pw) && /[^A-Za-z0-9]/.test(pw),
-    ].filter(Boolean).length;
-    return Math.min(3, 1 + bonus);
-}
-
-const LEVELS = [
-    { label: "Too short", bar: "bg-danger", text: "text-danger", segments: 1 },
-    { label: "Okay", bar: "bg-amber-400", text: "text-amber-300", segments: 2 },
-    { label: "Good", bar: "bg-lime-400", text: "text-lime-300", segments: 3 },
-    { label: "Strong", bar: "bg-secondary", text: "text-secondary", segments: 4 },
-];
+/* ---------- Styles ---------- */
 
 const panelVariants: Variants = {
     enter: (d: number) => ({ opacity: 0, x: d * 28 }),
@@ -97,11 +181,23 @@ const secondaryBtn =
 /* ---------- Small pieces ---------- */
 
 function Field({
-    id, label, error, children,
-}: { id: string; label: string; error?: string; children: React.ReactNode }) {
+    id,
+    label,
+    error,
+    hint,
+    children,
+}: {
+    id: string;
+    label: string;
+    error?: string;
+    hint?: string;
+    children: React.ReactNode;
+}) {
     return (
         <div>
-            <label htmlFor={id} className={labelClass}>{label}</label>
+            <label htmlFor={id} className={labelClass}>
+                {label}
+            </label>
             {children}
             <AnimatePresence initial={false}>
                 {error && (
@@ -118,34 +214,26 @@ function Field({
                     </motion.p>
                 )}
             </AnimatePresence>
+            {!error && hint && <p className="text-xs text-slate-500 mt-2">{hint}</p>}
         </div>
     );
 }
 
-function StrengthMeter({ password }: { password: string }) {
-    if (!password) return null;
-    const { label, bar, text, segments } = LEVELS[passwordLevel(password)];
-    return (
-        <div className="mt-3 flex items-center gap-3" aria-live="polite">
-            <div className="flex flex-1 gap-1.5">
-                {[0, 1, 2, 3].map((i) => (
-                    <span
-                        key={i}
-                        className={`h-1 flex-1 rounded-full transition-colors duration-300 ${i < segments ? bar : "bg-white/10"}`}
-                    />
-                ))}
-            </div>
-            <span className={`text-xs font-semibold ${text}`}>{label}</span>
-        </div>
-    );
-}
-
-function Stepper({ step, onJump }: { step: number; onJump: (i: number) => void }) {
+function Stepper({
+    step,
+    maxStep,
+    onJump,
+}: {
+    step: number;
+    maxStep: number;
+    onJump: (i: number) => void;
+}) {
     return (
         <ol className="flex items-start mb-8" aria-label="Sign up progress">
             {STEPS.map((s, i) => {
-                const done = i < step;
                 const active = i === step;
+                const done = !active && i < maxStep;
+                const reachable = i <= maxStep;
                 return (
                     <li key={s.key} className="relative flex-1 flex flex-col items-center">
                         {i > 0 && (
@@ -153,34 +241,116 @@ function Stepper({ step, onJump }: { step: number; onJump: (i: number) => void }
                                 <motion.span
                                     className="block h-full bg-gradient-to-r from-primary to-secondary"
                                     initial={false}
-                                    animate={{ width: i <= step ? "100%" : "0%" }}
+                                    animate={{ width: i <= maxStep ? "100%" : "0%" }}
                                     transition={{ duration: 0.35, ease: "easeOut" }}
                                 />
                             </span>
                         )}
                         <button
                             type="button"
-                            disabled={i > step}
+                            disabled={!reachable}
                             onClick={() => onJump(i)}
                             aria-current={active ? "step" : undefined}
                             aria-label={`${s.label}${done ? " (completed)" : ""}`}
-                            className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 text-xs font-bold transition-colors ${done
-                                    ? "bg-secondary border-secondary text-black cursor-pointer"
-                                    : active
-                                        ? "bg-surface border-primary text-white ring-4 ring-primary/15"
-                                        : "bg-surface border-border text-slate-500"
+                            className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 text-xs font-bold transition-colors ${active
+                                    ? "bg-surface border-primary text-white ring-4 ring-primary/15"
+                                    : done
+                                        ? "bg-secondary border-secondary text-black cursor-pointer"
+                                        : reachable
+                                            ? "bg-surface border-slate-500 text-slate-300 cursor-pointer"
+                                            : "bg-surface border-border text-slate-500"
                                 }`}
                         >
                             {done ? <CheckIcon className="h-4 w-4" /> : i + 1}
                         </button>
-                        <span className={`mt-2 px-1 text-center text-[11px] font-semibold leading-tight ${active ? "text-white" : done ? "text-slate-300" : "text-slate-500"
-                            }`}>
+                        <span
+                            className={`mt-2 px-1 text-center text-[11px] font-semibold leading-tight ${active ? "text-white" : reachable ? "text-slate-300" : "text-slate-500"
+                                }`}
+                        >
                             {s.label}
                         </span>
                     </li>
                 );
             })}
         </ol>
+    );
+}
+
+function RelationshipField({
+    id,
+    value,
+    error,
+    onChange,
+}: {
+    id: string;
+    value: string;
+    error?: string;
+    onChange: (v: string) => void;
+}) {
+    return (
+        <Field id={id} label="Relationship" error={error}>
+            <div className="flex flex-wrap gap-2 mb-3" role="group" aria-label="Common relationships">
+                {RELATIONSHIPS.map((r) => {
+                    const selected = value.trim().toLowerCase() === r.toLowerCase();
+                    return (
+                        <button
+                            key={r}
+                            type="button"
+                            aria-pressed={selected}
+                            onClick={() => onChange(r)}
+                            className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${selected
+                                    ? "border-primary bg-primary/15 text-white"
+                                    : "border-border text-slate-400 hover:border-slate-600 hover:text-white"
+                                }`}
+                        >
+                            {r}
+                        </button>
+                    );
+                })}
+            </div>
+            <input
+                id={id}
+                type="text"
+                autoComplete="off"
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                placeholder="Or type your own"
+                aria-invalid={Boolean(error)}
+                aria-describedby={error ? `${id}-error` : undefined}
+                className={inputClasses(Boolean(error))}
+            />
+        </Field>
+    );
+}
+
+function ReviewCard({
+    title,
+    onEdit,
+    children,
+}: {
+    title: string;
+    onEdit: () => void;
+    children: React.ReactNode;
+}) {
+    return (
+        <div className="rounded-xl border border-border bg-background/50 px-4 py-3">
+            <div className="flex items-center justify-between mb-1">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">{title}</h3>
+                <button type="button" onClick={onEdit} className="text-xs font-semibold text-secondary hover:underline">
+                    Edit
+                </button>
+            </div>
+            <dl className="divide-y divide-border">{children}</dl>
+        </div>
+    );
+}
+
+function ReviewRow({ label, children }: { label: string; children: React.ReactNode }) {
+    return (
+        <div className="flex items-start justify-between gap-4 py-2 text-sm">
+            <dt className="shrink-0 text-slate-500">{label}</dt>
+            <dd className="min-w-0 break-words text-right text-slate-200">{children}</dd>
+        </div>
     );
 }
 
@@ -211,34 +381,21 @@ function SuccessPanel({ email }: { email: string }) {
                 </svg>
             </motion.div>
 
-            <h2 className="text-2xl font-black uppercase tracking-tight text-white mb-3">
-                Check your inbox
-            </h2>
-            <p className="text-sm text-slate-400 leading-relaxed mb-1">
-                We sent an activation link to
-            </p>
+            <h2 className="text-2xl font-black uppercase tracking-tight text-white mb-3">Check your inbox</h2>
+            <p className="text-sm text-slate-400 leading-relaxed mb-1">We sent an activation link to</p>
             <p className="text-sm font-semibold text-white break-all mb-4">{email}</p>
             <p className="text-sm text-slate-400 leading-relaxed mb-8">
-                The link expires in 15 minutes. If you don't see it, check your spam folder.
-                You'll need to activate your account before you can log in.
+                The link expires in 15 minutes. If you don't see it, check your spam folder. You'll need to activate your
+                account before you can log in.
             </p>
 
             <div className="flex flex-col gap-3">
                 {provider && (
-                    <a
-                        href={provider.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className={`${primaryBtn} flex-none`}
-                    >
+                    <a href={provider.url} target="_blank" rel="noreferrer" className={`${primaryBtn} flex-none`}>
                         Open {provider.name}
                     </a>
                 )}
-                <Link
-                    to="/login"
-                    state={{ email }}
-                    className={provider ? secondaryBtn : `${primaryBtn} flex-none`}
-                >
+                <Link to="/login" state={{ email }} className={provider ? secondaryBtn : `${primaryBtn} flex-none`}>
                     Go to login
                 </Link>
             </div>
@@ -254,60 +411,144 @@ const Signup: React.FC = () => {
     const [errors, setErrors] = useState<Errors>({});
     const [formError, setFormError] = useState("");
     const [step, setStep] = useState(0);
+    const [maxStep, setMaxStep] = useState(0);
+    const [fromReview, setFromReview] = useState(false);
     const [direction, setDirection] = useState(1);
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
+    const [termsOpen, setTermsOpen] = useState(false);
 
     const dir = reduceMotion ? 0 : direction;
-    const today = new Date().toISOString().split("T")[0];
     const lastStep = STEPS.length - 1;
 
-    function update(key: keyof FormState, value: string) {
+    // Date of birth limits and live feedback
+    const maxDob = isoYearsAgo(MIN_AGE);
+    const minDob = isoYearsAgo(110);
+    const dobAge = form.dob ? ageOn(form.dob) : null;
+    const dobYearOk = Number(form.dob.slice(0, 4)) >= MIN_BIRTH_YEAR;
+    const liveDobError =
+        dobAge !== null && dobYearOk && dobAge < MIN_AGE
+            ? dobAge < 0
+                ? "Date of birth can't be in the future."
+                : `You must be at least ${MIN_AGE} years old to sign up.`
+            : undefined;
+    const dobError = errors.dob ?? liveDobError;
+
+    /* ----- form updates ----- */
+
+    function setText(key: TextKey, value: string) {
         setForm((f) => ({ ...f, [key]: value }));
         setErrors((er) => (er[key] ? { ...er, [key]: undefined } : er));
     }
 
-    // Props shared by every text input: id, value, handler, error styling, aria
-    const bind = (key: keyof FormState) => ({
+    function setOwnPhone(phone: Phone) {
+        setForm((f) => ({ ...f, phone }));
+        setErrors((er) => (er.phone ? { ...er, phone: undefined } : er));
+    }
+
+    function setContact(index: number, patch: Partial<Contact>) {
+        setForm((f) => ({
+            ...f,
+            contacts: f.contacts.map((c, i) => (i === index ? { ...c, ...patch } : c)),
+        }));
+        setErrors((er) => {
+            if (!er.contacts?.[index]) return er;
+            const contacts = er.contacts.map((ce, i) => {
+                if (i !== index) return ce;
+                const next = { ...ce };
+                (Object.keys(patch) as (keyof Contact)[]).forEach((k) => delete next[k]);
+                return next;
+            });
+            return { ...er, contacts };
+        });
+    }
+
+    function addContact() {
+        if (form.contacts.length >= MAX_CONTACTS) return;
+        const newIndex = form.contacts.length;
+        setForm((f) => ({ ...f, contacts: [...f.contacts, emptyContact(f.phone.country)] }));
+        requestAnimationFrame(() => document.getElementById(`contact-${newIndex}-name`)?.focus());
+    }
+
+    function removeContact(index: number) {
+        setForm((f) => ({ ...f, contacts: f.contacts.filter((_, i) => i !== index) }));
+        setErrors((er) => ({ ...er, contacts: undefined }));
+    }
+
+    // Props shared by the plain text inputs
+    const bind = (key: TextKey, error: string | undefined = errors[key]) => ({
         id: key,
         value: form[key],
-        onChange: (e: React.ChangeEvent<HTMLInputElement>) => update(key, e.target.value),
-        "aria-invalid": Boolean(errors[key]),
-        "aria-describedby": errors[key] ? `${key}-error` : undefined,
-        className: inputClasses(Boolean(errors[key])),
+        onChange: (e: React.ChangeEvent<HTMLInputElement>) => setText(key, e.target.value),
+        "aria-invalid": Boolean(error),
+        "aria-describedby": error ? `${key}-error` : undefined,
+        className: inputClasses(Boolean(error)),
     });
+
+    /* ----- navigation ----- */
 
     function goTo(next: number) {
         setDirection(next > step ? 1 : -1);
         setStep(next);
+        setMaxStep((m) => Math.max(m, next));
+        setFromReview(false);
         setFormError("");
+
+        // Untouched contact numbers follow the country the member picked for their own phone
+        if (next === 2) {
+            setForm((f) => ({
+                ...f,
+                contacts: f.contacts.map((c) =>
+                    c.phone.number ? c : { ...c, phone: { ...c.phone, country: f.phone.country } }
+                ),
+            }));
+        }
+    }
+
+    function editFromReview(index: number) {
+        goTo(index);
+        setFromReview(true);
     }
 
     function handleServerError(status: number, message?: string) {
         const text = message ?? "Sign up failed";
 
-        // Send people back to the step that actually has the problem
         if (/password/i.test(text)) {
-            setErrors({ password: text });
             goTo(0);
-            return;
-        }
-        if (/date of birth/i.test(text)) {
-            setErrors({ dob: text });
+            setErrors({ password: text });
+        } else if (/(date of birth|years old)/i.test(text)) {
             goTo(1);
-            return;
-        }
-        if (status === 500) {
+            setErrors({ dob: text });
+        } else if (/emergency/i.test(text)) {
+            goTo(2);
+            setFormError(text);
+        } else if (/phone/i.test(text)) {
+            goTo(1);
+            setErrors({ phone: text });
+        } else if (/terms/i.test(text)) {
+            goTo(3);
+            setErrors({ terms: text });
+        } else if (status === 500) {
             goTo(0);
             setFormError(
                 "We couldn't create your account. That email or username may already be in use. Try different details."
             );
-            return;
+        } else {
+            setFormError(text);
         }
-        setFormError(text);
     }
 
     async function createAccount() {
+        // Re-check every step so a skipped or edited step can't slip through
+        for (let s = 0; s < lastStep; s++) {
+            const stepErrors = validate(s, form);
+            if (hasErrors(stepErrors)) {
+                goTo(s);
+                setErrors(stepErrors);
+                return;
+            }
+        }
+
         setLoading(true);
         setFormError("");
 
@@ -321,11 +562,14 @@ const Signup: React.FC = () => {
                     username: form.username.trim(),
                     email: form.email.trim(),
                     password: form.password,
-                    phone: form.phone.trim(),
-                    date_of_brith: form.dob, // sic: this is the field name the backend reads
-                    emergencyname: form.emergencyName.trim(),
-                    relationship: form.relationship.trim(),
-                    emgphone: form.emergencyPhone.trim(),
+                    phone: toE164(form.phone),
+                    date_of_birth: form.dob,
+                    emergencyContacts: form.contacts.map((c) => ({
+                        name: c.name.trim(),
+                        relationship: c.relationship.trim(),
+                        phone: toE164(c.phone),
+                    })),
+                    acceptedTerms: form.acceptedTerms,
                 }),
             });
 
@@ -350,47 +594,64 @@ const Signup: React.FC = () => {
 
         const stepErrors = validate(step, form);
         setErrors(stepErrors);
-        if (Object.keys(stepErrors).length > 0) return;
+        if (hasErrors(stepErrors)) return;
 
         if (step < lastStep) {
-            goTo(step + 1);
+            goTo(fromReview ? lastStep : step + 1);
             return;
         }
         await createAccount();
     }
 
+    function acceptTerms() {
+        setForm((f) => ({ ...f, acceptedTerms: true }));
+        setErrors((er) => ({ ...er, terms: undefined }));
+        setTermsOpen(false);
+    }
+
+    const submitLabel =
+        step < lastStep
+            ? fromReview
+                ? "Save and review"
+                : "Continue"
+            : loading
+                ? "Creating Account..."
+                : "Create Account";
+
     return (
         <section className="min-h-screen bg-background flex items-center justify-center px-4 py-16">
-            <div className="w-full max-w-md">
-
+            <div className="w-full max-w-lg">
                 <motion.div
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, ease: "easeOut" }}
                     className="p-[2px] rounded-2xl bg-gradient-to-b from-primary to-secondary shadow-[0_0_40px_rgba(194,92,255,0.15)]"
                 >
-                    <div className="bg-surface rounded-[14px] p-8 overflow-hidden">
-
+                    <div className="bg-surface rounded-[14px] p-6 sm:p-8 overflow-hidden">
                         <AnimatePresence mode="wait" initial={false}>
                             {success ? (
                                 <SuccessPanel key="success" email={form.email.trim()} />
                             ) : (
                                 <motion.div key="form" exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}>
-
                                     <div className="text-center mb-8">
                                         <span className="text-xs font-bold uppercase tracking-widest text-secondary bg-secondary/10 px-4 py-1.5 rounded-full border border-secondary/20">
                                             Join Us
                                         </span>
                                         <h2 className="text-3xl font-black uppercase tracking-tight mt-4 leading-none text-white">
-                                            Create Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Account</span>
+                                            Create Your{" "}
+                                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
+                                                Account
+                                            </span>
                                         </h2>
                                     </div>
 
-                                    <Stepper step={step} onJump={goTo} />
+                                    <Stepper step={step} maxStep={maxStep} onJump={goTo} />
 
                                     <AnimatePresence>
                                         {formError && (
-                                            <Banner key="form-error" tone="error">{formError}</Banner>
+                                            <Banner key="form-error" tone="error">
+                                                {formError}
+                                            </Banner>
                                         )}
                                     </AnimatePresence>
 
@@ -406,83 +667,282 @@ const Signup: React.FC = () => {
                                                 transition={{ duration: 0.2, ease: "easeOut" }}
                                                 className="space-y-5"
                                             >
+                                                {/* ---------- Step 1: Account ---------- */}
                                                 {step === 0 && (
                                                     <>
                                                         <Field id="name" label="Name" error={errors.name}>
-                                                            <input {...bind("name")} type="text" autoComplete="name" placeholder="John Doe" autoFocus required />
+                                                            <input
+                                                                {...bind("name")}
+                                                                type="text"
+                                                                autoComplete="name"
+                                                                placeholder="John Doe"
+                                                                autoFocus
+                                                                required
+                                                            />
                                                         </Field>
                                                         <Field id="username" label="Username" error={errors.username}>
-                                                            <input {...bind("username")} type="text" autoComplete="username" autoCapitalize="none" spellCheck={false} placeholder="jdoe" required />
+                                                            <input
+                                                                {...bind("username")}
+                                                                type="text"
+                                                                autoComplete="username"
+                                                                autoCapitalize="none"
+                                                                spellCheck={false}
+                                                                placeholder="jdoe"
+                                                                required
+                                                            />
                                                         </Field>
                                                         <Field id="email" label="Email" error={errors.email}>
-                                                            <input {...bind("email")} type="email" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false} placeholder="you@example.com" required />
+                                                            <input
+                                                                {...bind("email")}
+                                                                type="email"
+                                                                inputMode="email"
+                                                                autoComplete="email"
+                                                                autoCapitalize="none"
+                                                                spellCheck={false}
+                                                                placeholder="you@example.com"
+                                                                required
+                                                            />
                                                         </Field>
                                                         <Field id="password" label="Password" error={errors.password}>
-                                                            <PasswordInput {...bind("password")} autoComplete="new-password" maxLength={72} placeholder="At least 8 characters" required />
-                                                            <StrengthMeter password={form.password} />
+                                                            <PasswordInput
+                                                                {...bind("password")}
+                                                                autoComplete="new-password"
+                                                                maxLength={72}
+                                                                placeholder="Create a password"
+                                                                required
+                                                            />
+                                                            <div className="mt-3">
+                                                                <PasswordGuide password={form.password} />
+                                                            </div>
                                                         </Field>
                                                     </>
                                                 )}
 
+                                                {/* ---------- Step 2: About you ---------- */}
                                                 {step === 1 && (
                                                     <>
                                                         <Field id="phone" label="Phone" error={errors.phone}>
-                                                            <input {...bind("phone")} type="tel" inputMode="tel" autoComplete="tel" placeholder="(555) 123-4567" autoFocus required />
+                                                            <PhoneInput
+                                                                id="phone"
+                                                                value={form.phone}
+                                                                onChange={setOwnPhone}
+                                                                hasError={Boolean(errors.phone)}
+                                                                describedBy={errors.phone ? "phone-error" : undefined}
+                                                                autoFocus
+                                                            />
                                                         </Field>
-                                                        <Field id="dob" label="Date of birth" error={errors.dob}>
+
+                                                        <Field
+                                                            id="dob"
+                                                            label="Date of birth"
+                                                            error={dobError}
+                                                            hint={`You must be at least ${MIN_AGE} years old to join.`}
+                                                        >
                                                             <input
-                                                                {...bind("dob")}
-                                                                className={`${inputClasses(Boolean(errors.dob))} [color-scheme:dark]`}
+                                                                {...bind("dob", dobError)}
+                                                                className={`${inputClasses(Boolean(dobError))} [color-scheme:dark]`}
                                                                 type="date"
                                                                 autoComplete="bday"
-                                                                max={today}
+                                                                min={minDob}
+                                                                max={maxDob}
                                                                 required
                                                             />
                                                         </Field>
                                                     </>
                                                 )}
 
+                                                {/* ---------- Step 3: Emergency contacts ---------- */}
                                                 {step === 2 && (
                                                     <>
-                                                        <p className="text-sm text-slate-400 -mt-1">
-                                                            Someone we can call if something happens while you're training.
+                                                        <div className="-mt-1 flex items-start justify-between gap-4">
+                                                            <p className="text-sm text-slate-400">
+                                                                People we can call if something happens while you're training. Add up to{" "}
+                                                                {MAX_CONTACTS}.
+                                                            </p>
+                                                            <span className="shrink-0 rounded-full border border-border px-2.5 py-1 text-xs font-semibold text-slate-400">
+                                                                {form.contacts.length} of {MAX_CONTACTS}
+                                                            </span>
+                                                        </div>
+
+                                                        <AnimatePresence initial={false}>
+                                                            {form.contacts.map((c, i) => {
+                                                                const ce = errors.contacts?.[i] ?? {};
+                                                                return (
+                                                                    <motion.div
+                                                                        key={i}
+                                                                        initial={{ opacity: 0, height: 0 }}
+                                                                        animate={{ opacity: 1, height: "auto" }}
+                                                                        exit={{ opacity: 0, height: 0 }}
+                                                                        transition={{ duration: 0.25, ease: "easeOut" }}
+                                                                        className="overflow-hidden"
+                                                                    >
+                                                                        <div className="space-y-4 rounded-xl border border-border bg-background/50 p-4">
+                                                                            <div className="flex items-center justify-between">
+                                                                                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                                                                                    Contact {i + 1}
+                                                                                </h3>
+                                                                                {i > 0 && (
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        onClick={() => removeContact(i)}
+                                                                                        className="flex items-center gap-1 text-xs font-semibold text-slate-400 transition-colors hover:text-danger"
+                                                                                    >
+                                                                                        <XMarkIcon className="h-3.5 w-3.5" />
+                                                                                        Remove
+                                                                                    </button>
+                                                                                )}
+                                                                            </div>
+
+                                                                            <Field id={`contact-${i}-name`} label="Name" error={ce.name}>
+                                                                                <input
+                                                                                    id={`contact-${i}-name`}
+                                                                                    type="text"
+                                                                                    autoComplete="off"
+                                                                                    autoFocus={i === 0}
+                                                                                    value={c.name}
+                                                                                    onChange={(e) => setContact(i, { name: e.target.value })}
+                                                                                    placeholder="Jane Doe"
+                                                                                    aria-invalid={Boolean(ce.name)}
+                                                                                    aria-describedby={ce.name ? `contact-${i}-name-error` : undefined}
+                                                                                    className={inputClasses(Boolean(ce.name))}
+                                                                                />
+                                                                            </Field>
+
+                                                                            <RelationshipField
+                                                                                id={`contact-${i}-relationship`}
+                                                                                value={c.relationship}
+                                                                                error={ce.relationship}
+                                                                                onChange={(v) => setContact(i, { relationship: v })}
+                                                                            />
+
+                                                                            <Field id={`contact-${i}-phone`} label="Phone" error={ce.phone}>
+                                                                                <PhoneInput
+                                                                                    id={`contact-${i}-phone`}
+                                                                                    value={c.phone}
+                                                                                    onChange={(phone) => setContact(i, { phone })}
+                                                                                    hasError={Boolean(ce.phone)}
+                                                                                    describedBy={ce.phone ? `contact-${i}-phone-error` : undefined}
+                                                                                />
+                                                                            </Field>
+                                                                        </div>
+                                                                    </motion.div>
+                                                                );
+                                                            })}
+                                                        </AnimatePresence>
+
+                                                        {form.contacts.length < MAX_CONTACTS ? (
+                                                            <button
+                                                                type="button"
+                                                                onClick={addContact}
+                                                                className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border py-3 text-sm font-semibold text-slate-400 transition-colors hover:border-slate-500 hover:text-white"
+                                                            >
+                                                                <PlusIcon className="h-4 w-4" />
+                                                                Add a second contact
+                                                            </button>
+                                                        ) : (
+                                                            <p className="text-center text-xs text-slate-500">
+                                                                You've added the maximum of {MAX_CONTACTS} contacts.
+                                                            </p>
+                                                        )}
+                                                    </>
+                                                )}
+
+                                                {/* ---------- Step 4: Review ---------- */}
+                                                {step === 3 && (
+                                                    <>
+                                                        <p className="-mt-1 text-sm text-slate-400">
+                                                            Check your details, then create your account.
                                                         </p>
-                                                        <Field id="emergencyName" label="Contact name" error={errors.emergencyName}>
-                                                            <input {...bind("emergencyName")} type="text" autoComplete="off" placeholder="Jane Doe" autoFocus required />
-                                                        </Field>
 
-                                                        <Field id="relationship" label="Relationship" error={errors.relationship}>
-                                                            <div className="flex flex-wrap gap-2 mb-3" role="group" aria-label="Common relationships">
-                                                                {RELATIONSHIPS.map((r) => {
-                                                                    const selected = form.relationship.trim().toLowerCase() === r.toLowerCase();
-                                                                    return (
-                                                                        <button
-                                                                            key={r}
-                                                                            type="button"
-                                                                            aria-pressed={selected}
-                                                                            onClick={() => update("relationship", r)}
-                                                                            className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${selected
-                                                                                    ? "border-primary bg-primary/15 text-white"
-                                                                                    : "border-border text-slate-400 hover:border-slate-600 hover:text-white"
-                                                                                }`}
-                                                                        >
-                                                                            {r}
-                                                                        </button>
-                                                                    );
-                                                                })}
-                                                            </div>
-                                                            <input {...bind("relationship")} type="text" autoComplete="off" placeholder="Or type your own" required />
-                                                        </Field>
+                                                        <ReviewCard title="Account" onEdit={() => editFromReview(0)}>
+                                                            <ReviewRow label="Name">{form.name.trim()}</ReviewRow>
+                                                            <ReviewRow label="Username">{form.username.trim()}</ReviewRow>
+                                                            <ReviewRow label="Email">{form.email.trim()}</ReviewRow>
+                                                        </ReviewCard>
 
-                                                        <Field id="emergencyPhone" label="Contact phone" error={errors.emergencyPhone}>
-                                                            <input {...bind("emergencyPhone")} type="tel" inputMode="tel" autoComplete="off" placeholder="(555) 987-6543" required />
-                                                        </Field>
+                                                        <ReviewCard title="About you" onEdit={() => editFromReview(1)}>
+                                                            <ReviewRow label="Phone">{formatPhone(form.phone)}</ReviewRow>
+                                                            <ReviewRow label="Date of birth">
+                                                                {form.dob ? `${formatDob(form.dob)} (age ${ageOn(form.dob)})` : "—"}
+                                                            </ReviewRow>
+                                                        </ReviewCard>
+
+                                                        <ReviewCard
+                                                            title={form.contacts.length > 1 ? "Emergency contacts" : "Emergency contact"}
+                                                            onEdit={() => editFromReview(2)}
+                                                        >
+                                                            {form.contacts.map((c, i) => (
+                                                                <ReviewRow key={i} label={`Contact ${i + 1}`}>
+                                                                    {c.name.trim()} ({c.relationship.trim()})
+                                                                    <br />
+                                                                    <span className="text-slate-400">{formatPhone(c.phone)}</span>
+                                                                </ReviewRow>
+                                                            ))}
+                                                        </ReviewCard>
+
+                                                        <div>
+                                                            <label
+                                                                className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-colors ${errors.terms
+                                                                        ? "border-danger/60 bg-danger/5"
+                                                                        : form.acceptedTerms
+                                                                            ? "border-secondary/40 bg-secondary/5"
+                                                                            : "border-border hover:border-slate-600"
+                                                                    }`}
+                                                            >
+                                                                <input
+                                                                    type="checkbox"
+                                                                    className="peer sr-only"
+                                                                    checked={form.acceptedTerms}
+                                                                    onChange={(e) => {
+                                                                        setForm((f) => ({ ...f, acceptedTerms: e.target.checked }));
+                                                                        setErrors((er) => ({ ...er, terms: undefined }));
+                                                                    }}
+                                                                    aria-describedby={errors.terms ? "terms-error" : undefined}
+                                                                />
+                                                                <span
+                                                                    aria-hidden="true"
+                                                                    className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-primary ${form.acceptedTerms ? "border-secondary bg-secondary" : "border-slate-600"
+                                                                        }`}
+                                                                >
+                                                                    {form.acceptedTerms && <CheckIcon className="h-3.5 w-3.5 text-black" />}
+                                                                </span>
+                                                                <span className="text-sm leading-snug text-slate-300">
+                                                                    I have read and agree to the{" "}
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={(e) => {
+                                                                            e.preventDefault();
+                                                                            setTermsOpen(true);
+                                                                        }}
+                                                                        className="font-semibold text-secondary underline underline-offset-2"
+                                                                    >
+                                                                        Terms &amp; Conditions
+                                                                    </button>
+                                                                    .
+                                                                </span>
+                                                            </label>
+                                                            <AnimatePresence initial={false}>
+                                                                {errors.terms && (
+                                                                    <motion.p
+                                                                        key="terms-error"
+                                                                        id="terms-error"
+                                                                        role="alert"
+                                                                        initial={{ opacity: 0, y: -4 }}
+                                                                        animate={{ opacity: 1, y: 0 }}
+                                                                        exit={{ opacity: 0 }}
+                                                                        className="mt-2 text-xs text-danger"
+                                                                    >
+                                                                        {errors.terms}
+                                                                    </motion.p>
+                                                                )}
+                                                            </AnimatePresence>
+                                                        </div>
                                                     </>
                                                 )}
                                             </motion.div>
                                         </AnimatePresence>
 
-                                        <div className="flex gap-3 mt-8">
+                                        <div className="mt-8 flex gap-3">
                                             {step > 0 && (
                                                 <button type="button" onClick={() => goTo(step - 1)} className={secondaryBtn}>
                                                     Back
@@ -499,25 +959,25 @@ const Signup: React.FC = () => {
                                                 {loading && (
                                                     <span className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
                                                 )}
-                                                {step < lastStep ? "Continue" : loading ? "Creating Account..." : "Create Account"}
+                                                {submitLabel}
                                             </motion.button>
                                         </div>
                                     </form>
 
-                                    <p className="text-center text-sm text-slate-400 mt-8">
+                                    <p className="mt-8 text-center text-sm text-slate-400">
                                         Already have an account?{" "}
-                                        <Link to="/login" className="text-secondary font-semibold hover:underline">
+                                        <Link to="/login" className="font-semibold text-secondary hover:underline">
                                             Log in
                                         </Link>
                                     </p>
-
                                 </motion.div>
                             )}
                         </AnimatePresence>
-
                     </div>
                 </motion.div>
             </div>
+
+            <TermsModal open={termsOpen} onClose={() => setTermsOpen(false)} onAccept={acceptTerms} />
         </section>
     );
 };

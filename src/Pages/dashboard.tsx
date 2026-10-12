@@ -86,7 +86,7 @@ const Dashboard: React.FC = () => {
     const [price, setPrice] = useState("");
     const [dueDate, setDueDate] = useState("");
     const [status, setStatus] = useState("");
-    const [hasMembership, setHasMembership] = useState(true);
+    const [hasMembership, setHasMembership] = useState(false);
     const [usersInfo, setUsersInfo] = useState<UserInfo[]>([]);
     const [dataLoading, setDataLoading] = useState(true);
 
@@ -132,19 +132,23 @@ const Dashboard: React.FC = () => {
                     );
                 } else {
                     const rows: MembershipRow[] = data.rows ?? [];
-                    // Prefer a currently valid membership over old expired ones
-                    const current =
-                        rows.find((r) => r.status === "active" || r.status === "due_soon") ?? rows[0];
 
-                    if (!current) {
+                    // Find a valid current membership.
+                    const current =
+                        rows.find(
+                            (r) => r.status === "active" || r.status === "due_soon"
+                        ) ?? rows[0];
+
+                    // No membership records returned.
+                    if (!current || !current.membership_name) {
                         setHasMembership(false);
-                        return; // finally still runs
+                        return;
                     }
 
                     setHasMembership(true);
-                    setDueDate(current.due_date);
-                    setPrice(String(current.price));
-                    setStatus(current.status);
+                    setDueDate(current.due_date ?? "");
+                    setPrice(String(current.price ?? ""));
+                    setStatus(current.status ?? "canceled");
                 }
             } catch (error) {
                 if ((error as Error).name === "AbortError") return;
