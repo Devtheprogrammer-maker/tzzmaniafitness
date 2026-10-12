@@ -49,7 +49,7 @@ type Membership = {
   name: string,
   price: number,
   type: string,
-  amenities: string,
+  amenities: [],
   is_popular: boolean
 
 }
@@ -203,7 +203,7 @@ const Pricing: React.FC = () => {
 
                     {/* Perks List */}
                     <ul className="space-y-3 mb-8">
-                      {plan.amenities.split(',').map((perk, perkIndex) => (
+                      {plan.amenities.map((perk, perkIndex) => (
                         <li className="flex items-start gap-2.5 text-left group/li" key={perkIndex} >
                           <CheckIcon className="h-4 w-4 text-secondary shrink-0 mt-0.5 group-hover/li:scale-125 transition-transform" />
                           <span className="text-sm text-slate-300 leading-snug group-hover/li:text-white transition-colors">{perk}</span>

@@ -14,6 +14,15 @@ interface UserInfo {
     status: string;
 }
 
+interface MembershipRow {
+    name: string;
+    membership_name: string;
+    price: string | number;
+    start_date: string;
+    due_date: string;
+    status: string;
+}
+
 const formatDate = (date: string) =>
     new Intl.DateTimeFormat("en-US", {
         weekday: "long",
@@ -104,21 +113,38 @@ const Dashboard: React.FC = () => {
                     credentials: "include",
                     signal: controller.signal,
                 });
-
-                if (res.status === 404 && !isAdmin) {
-                    setHasMembership(false);
-                    return;
-                }
                 if (!res.ok) throw new Error(`Request failed with status ${res.status}`);
 
                 const data = await res.json();
 
                 if (isAdmin) {
-                    setUsersInfo(data.usersInfo);
+                    const rows: UserInfo[] = data.rows ?? [];
+
+                    setUsersInfo(
+                        rows.map((row) => ({
+                            name: row.name,
+                            membership: row.membership,
+                            price: Number(row.price),
+                            startDate: row.startDate,
+                            dueDate: row.dueDate,
+                            status: row.status,
+                        }))
+                    );
                 } else {
-                    setDueDate(data.due_date);
-                    setPrice(data.price);
-                    setStatus(data.status);
+                    const rows: MembershipRow[] = data.rows ?? [];
+                    // Prefer a currently valid membership over old expired ones
+                    const current =
+                        rows.find((r) => r.status === "active" || r.status === "due_soon") ?? rows[0];
+
+                    if (!current) {
+                        setHasMembership(false);
+                        return; // finally still runs
+                    }
+
+                    setHasMembership(true);
+                    setDueDate(current.due_date);
+                    setPrice(String(current.price));
+                    setStatus(current.status);
                 }
             } catch (error) {
                 if ((error as Error).name === "AbortError") return;
