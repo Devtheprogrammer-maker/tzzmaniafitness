@@ -1,4 +1,3 @@
-import React from "react";
 import { CheckCircleIcon, ChevronDownIcon } from "@heroicons/react/24/solid";
 import { inputClasses } from "./AuthUI";
 
@@ -102,8 +101,8 @@ export function PhoneInput({ id, value, onChange, hasError = false, autoFocus, d
                 {/* Looks like a compact "BZ +501" pill; a transparent native <select> sits on top for the picker */}
                 <div
                     className={`relative flex w-[7.5rem] shrink-0 items-center gap-1.5 rounded-xl border bg-background px-3 text-sm text-foreground transition-all hover:border-primary/60 focus-within:ring-2 focus-within:ring-primary/40 ${hasError
-                            ? "border-danger focus-within:border-danger focus-within:ring-danger"
-                            : "border-border focus-within:border-primary"
+                        ? "border-danger focus-within:border-danger focus-within:ring-danger"
+                        : "border-border focus-within:border-primary"
                         }`}
                 >
                     <span className="font-semibold">{country.code}</span>
