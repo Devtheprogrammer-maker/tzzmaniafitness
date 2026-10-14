@@ -1,173 +1,137 @@
-import dumbbell from "../assets/img/dumbbells.jpg";
-import gymHero from "../assets/img/gymhero.jpg";
-import { useState, useEffect} from "react";
+import { useEffect, useState } from 'react';
 import {
   CalendarDaysIcon,
-  TrophyIcon,
-  FireIcon,
-  BoltIcon
-} from "@heroicons/react/24/solid";
-import { easeInOut, motion, type Variants} from 'motion/react'
-// import type { Variants } from "framer-motion";
+  CheckCircleIcon,
+  ClockIcon,
+  TicketIcon,
+} from '@heroicons/react/24/solid';
+import { motion, useReducedMotion, type Variants } from 'motion/react';
+import dumbbell from '../assets/img/dumbbells.jpg';
+import gymHero from '../assets/img/gymhero.jpg';
 
-// Move static configurations outside the component to prevent re-creation on every render
-const STATS_DATA = [
-  { title: "6 Days", subtitle: "Open Weekly", icon: CalendarDaysIcon },
-  { title: "100%", subtitle: "Maintained Equipment", icon: TrophyIcon },
-  { title: "Pro", subtitle: "Coach", icon: FireIcon },
-  { title: "Premium", subtitle: "Strength & Cardio", icon: BoltIcon },
+const IMAGES = [dumbbell, gymHero];
+const ROTATE_MS = 8000;
+
+const FACTS = [
+  { value: '$10', label: 'Day pass', icon: TicketIcon },
+  { value: '2 hrs', label: 'Floor access per visit', icon: ClockIcon },
+  { value: '6 days', label: 'Open every week', icon: CalendarDaysIcon },
+  { value: 'Walk-in', label: 'No booking needed', icon: CheckCircleIcon },
 ];
 
-const mainWrapperVariants: Variants = {
+const container: Variants = {
   hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { 
-      duration: 0.5, 
-      ease: easeInOut,
-      staggerChildren: 0.2 // Orchestrates clean entry flow across whole page
-    }
-  }
+  visible: { opacity: 1, transition: { staggerChildren: 0.12, delayChildren: 0.1 } },
 };
 
-const leftColumnVariants: Variants = {
-  hidden: { opacity: 0, x: -40 },
-  visible: {
-    opacity: 1,
-    x: 0,
-    transition: { duration: 0.8, ease: easeInOut, staggerChildren: 0.15 }
-  }
+const fadeUp: Variants = {
+  hidden: { opacity: 0, y: 24 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
 };
 
-const spanVariants: Variants = {
-  hidden: { opacity: 0, x: 50 }, // Comes from the right
-  visible: {
-    opacity: 1,
-    x: 0,
-    transition: { duration: 0.8, ease: easeInOut }
-  },
-};
+export default function Hero() {
+  const reduceMotion = useReducedMotion();
+  const [active, setActive] = useState(0);
 
-const rightGridVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.12, // Slightly tighter rhythm for multi-card grid
-    },
-  },
-};
-
-const cardVariants: Variants = {
-  hidden: { opacity: 0, y: 30 }, // Fixed from negative to slide gracefully upward
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: easeInOut }
-  },
-};
-
-const buttonHoverVariants: Variants = {
-  hover: { y: -4, scale: 1.02, transition: { duration: 0.2, ease: "easeOut" } },
-  tap: { scale: 0.98 }
-};
-
-const Hero: React.FC = () => {
-  const [picture, setPicture] = useState(dumbbell);
-
+  // Rotate the background photo, unless the visitor prefers reduced motion
   useEffect(() => {
-    const interval = setInterval(() => {
-      setPicture((current) => (current === dumbbell ? gymHero : dumbbell));
-    }, 8000);
-
-    return () => clearInterval(interval);
-  }, []);
+    if (reduceMotion) return;
+    const id = setInterval(() => setActive((i) => (i + 1) % IMAGES.length), ROTATE_MS);
+    return () => clearInterval(id);
+  }, [reduceMotion]);
 
   return (
-    <section
-      className="min-h-screen bg-cover bg-center bg-no-repeat transition-all duration-700 ease-in-out py-20 lg:py-0 flex items-center"
-      style={{ backgroundImage: `url(${picture})` }}
-    >
+    <section className='relative isolate flex min-h-svh items-center overflow-hidden bg-background py-24 lg:py-0'>
+
+      {/* Background: all photos stacked, only the active one is visible */}
+      <div className='absolute inset-0 -z-10' aria-hidden='true'>
+        {IMAGES.map((src, i) => (
+          <img
+            key={src}
+            src={src}
+            alt=''
+            decoding='async'
+            className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 motion-reduce:transition-none ${i === active ? 'opacity-100' : 'opacity-0'
+              }`}
+          />
+        ))}
+        {/* Darken the left side for text, and blend the bottom into the next section */}
+        <div className='absolute inset-0 bg-gradient-to-r from-background via-background/80 to-background/30' />
+        <div className='absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent' />
+      </div>
+
       <motion.div
-        variants={mainWrapperVariants}
-        initial="hidden"
-        animate="visible"
-        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center w-full"
+        variants={container}
+        initial='hidden'
+        animate='visible'
+        className='mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:px-8'
       >
-        {/* Left Column: Heading Content Card */}
-        <motion.div 
-          variants={leftColumnVariants}
-          className="p-6 md:p-8 rounded-2xl bg-surface/80 backdrop-blur-sm max-w-xl mx-auto lg:mx-0"
-        >
-          <div className="inline-block text-secondary text-[10px] sm:text-xs font-bold uppercase tracking-widest bg-secondary/10 py-1.5 px-3 sm:py-2 sm:px-4 rounded-full border border-secondary/50">
+        {/* Left: message and calls to action */}
+        <div>
+          <motion.span
+            variants={fadeUp}
+            className='inline-block rounded-full border border-secondary/30 bg-secondary/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-secondary'
+          >
             No Excuses. Just Results.
-          </div>
+          </motion.span>
 
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black uppercase tracking-tight leading-none pt-4 overflow-hidden">
-            Forge Your{" "}
-            <motion.span 
-              variants={spanVariants}
-              className="inline-block text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary"
-            >
+          <motion.h1
+            variants={fadeUp}
+            className='mt-5 text-5xl font-black uppercase leading-[1.05] tracking-tight text-white sm:text-6xl md:text-7xl'
+          >
+            Forge Your{' '}
+            <span className='inline-block bg-gradient-to-r from-primary to-secondary bg-clip-text pb-1 text-transparent'>
               Strength
-            </motion.span>
-          </h1>
+            </span>
+          </motion.h1>
 
-          <p className="text-text text-base sm:text-lg max-w-lg pt-3 leading-relaxed">
-            Train with state-of-the-art equipment, including dumbbells, cable machines, cardio equipment, and more. Everything you need to build strength, improve endurance, and achieve your fitness goals.
-          </p>
+          <motion.p variants={fadeUp} className='mt-5 max-w-lg text-base leading-relaxed text-slate-300 sm:text-lg'>
+            Train with dumbbells, cable machines, cardio equipment and more. Everything you need to build strength,
+            improve endurance and reach your fitness goals, with friendly coaching whenever you want it.
+          </motion.p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-stretch sm:justify-start pt-6">
-            <motion.a 
-              variants={buttonHoverVariants}
-              whileHover="hover"
-              whileTap="tap"
-              href="#membership" 
-              className="bg-primary hover:bg-secondary/50 text-white font-bold py-3.5 px-8 rounded-xl text-center shadow-lg shadow-primary/20"
+          <motion.div variants={fadeUp} className='mt-8 flex flex-col gap-3 sm:flex-row'>
+            <motion.a
+              href='#membership'
+              whileHover={{ y: -2, scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.2 }}
+              className='flex items-center justify-center rounded-xl bg-gradient-to-r from-primary to-secondary px-8 py-3.5 text-sm font-bold uppercase tracking-wider text-white shadow-lg shadow-primary/20'
             >
-              Join Now
+              Join now
             </motion.a>
-            <motion.a 
-              variants={buttonHoverVariants}
-              whileHover="hover"
-              whileTap="tap"
-              href="#schedule" 
-              className="border border-slate-800 hover:border-slate-700 bg-slate-900/50 text-white font-semibold py-3.5 px-8 rounded-xl text-center"
+            <motion.a
+              href='#schedule'
+              whileHover={{ y: -2, scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.2 }}
+              className='flex items-center justify-center rounded-xl border border-white/20 bg-background/40 px-8 py-3.5 text-sm font-bold uppercase tracking-wider text-white backdrop-blur-sm hover:border-white/40'
             >
-              View Schedule
+              See opening hours
             </motion.a>
-          </div>
-        </motion.div>
+          </motion.div>
 
-        {/* Right Column: Statistics Grid */}
-        <motion.div
-          variants={rightGridVariants}
-          className="grid grid-cols-2 gap-4 sm:gap-6 max-w-md mx-auto lg:mx-0 w-full"
+          <motion.p variants={fadeUp} className='mt-4 text-sm text-slate-400'>
+            Not ready to commit? Try a day pass for $10.
+          </motion.p>
+        </div>
+
+        {/* Right: the facts a first-time visitor wants */}
+        <motion.dl
+          variants={fadeUp}
+          className='grid w-full max-w-md grid-cols-2 gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/10 shadow-xl backdrop-blur-sm lg:ml-auto'
         >
-          {STATS_DATA.map((stat) => {
-            const IconComponent = stat.icon;
-
-            return (
-              <motion.div
-                variants={cardVariants}
-                whileTap={{ scale: 0.95, y: 0 }}
-                key={stat.title}
-                className="rounded-2xl border border-white/20 bg-background/80 p-4 sm:p-6 backdrop-blur-sm shadow-lg transition-all duration-300 hover:-translate-y-2 hover:scale-105 hover:shadow-primary/20"
-              >
-                {IconComponent && <IconComponent className="h-6 w-6 sm:h-8 sm:w-8 text-secondary mb-2 sm:mb-3" />}
-                <h3 className="text-2xl sm:text-3xl font-extrabold text-primary tracking-tight">
-                  {stat.title}
-                </h3>
-                <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-slate-400 leading-tight">
-                  {stat.subtitle}
-                </p>
-              </motion.div>
-            );
-          })}
-        </motion.div>
+          {FACTS.map(({ value, label, icon: Icon }) => (
+            <div key={label} className='flex flex-col-reverse bg-surface/80 p-5 sm:p-6'>
+              <dt className='mt-2 flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-slate-400'>
+                <Icon className='h-4 w-4 shrink-0 text-secondary' aria-hidden='true' />
+                {label}
+              </dt>
+              <dd className='text-3xl font-black tracking-tight text-white'>{value}</dd>
+            </div>
+          ))}
+        </motion.dl>
       </motion.div>
     </section>
   );
-};
-
-export default Hero;
+}
