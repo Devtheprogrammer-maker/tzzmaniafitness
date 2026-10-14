@@ -2,8 +2,15 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "motion/react";
 import { useAuth } from "../context/AuthContext";
-
-// const API_URL = import.meta.env.VITE_API_URL;
+import {
+    UsersIcon,
+    CurrencyDollarIcon,
+    ShieldCheckIcon,
+    ArrowRightOnRectangleIcon,
+    CalendarDaysIcon,
+    CreditCardIcon,
+    CheckBadgeIcon,
+} from "@heroicons/react/24/outline";
 
 interface UserInfo {
     name: string;
@@ -25,24 +32,23 @@ interface MembershipRow {
 
 const formatDate = (date: string) =>
     new Intl.DateTimeFormat("en-US", {
-        weekday: "long",
         year: "numeric",
         month: "short",
         day: "numeric",
-        timeZone: "UTC", // remove if API returns full timestamps
+        timeZone: "UTC",
     }).format(new Date(date));
 
 const statusStyles: Record<string, { dot: string; text: string; bg: string; label: string }> = {
-    active: { dot: "bg-secondary", text: "text-secondary", bg: "bg-secondary/10 border-secondary/30", label: "Active" },
-    due_soon: { dot: "bg-yellow-400", text: "text-yellow-400", bg: "bg-yellow-200/10 border-yellow-200/30", label: "Due Soon" },
-    expired: { dot: "bg-danger", text: "text-danger", bg: "bg-danger/10 border-danger/30", label: "Expired" },
+    active: { dot: "bg-emerald-400", text: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/30", label: "Active" },
+    due_soon: { dot: "bg-amber-400", text: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/30", label: "Due Soon" },
+    expired: { dot: "bg-rose-500", text: "text-rose-400", bg: "bg-rose-500/10 border-rose-500/30", label: "Expired" },
     canceled: { dot: "bg-slate-500", text: "text-slate-400", bg: "bg-slate-500/10 border-slate-500/30", label: "Canceled" },
 };
 
 function StatusBadge({ status }: { status: string }) {
     const s = statusStyles[status] ?? statusStyles.canceled;
     return (
-        <span className={`inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border ${s.bg} ${s.text}`}>
+        <span className={`inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full border ${s.bg} ${s.text}`}>
             <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`} />
             {s.label ?? status}
         </span>
@@ -55,29 +61,36 @@ interface ShellProps {
     logOut: () => void;
 }
 
-// Top-bar shell wraps every render path, including the loading gate,
-// so the page never flashes unstyled text before hydrating.
 const Shell = ({ children, isAdmin, logOut }: ShellProps) => (
-    <div className="min-h-screen bg-background">
-        <header className="border-b border-border">
-            <div className="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
-                <span className="text-sm font-black uppercase tracking-widest text-white">
-                    Tzzmania <span className="text-secondary">Fitness</span>
+    <div className="min-h-screen bg-background text-text selection:bg-primary selection:text-white relative overflow-hidden">
+        {/* Ambient Background Glow */}
+        <div className="absolute top-0 left-1/4 w-[500px] h-[300px] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
+
+        {/* Header */}
+        <header className="sticky top-0 z-40 bg-surface/80 backdrop-blur-xl border-b border-white/10">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+                <Link to="/" className="flex items-center gap-2 group">
+                    <span className="text-base font-black uppercase tracking-wider text-white">
+                        Tzzmania <span className="text-primary">Fitness</span>
+                    </span>
                     {isAdmin && (
-                        <span className="ml-3 text-[10px] font-bold uppercase tracking-widest text-primary bg-primary/10 border border-primary/30 px-2 py-0.5 rounded-full align-middle">
-                            Admin
+                        <span className="ml-2 text-[10px] font-extrabold uppercase tracking-widest text-primary bg-primary/15 border border-primary/30 px-2.5 py-0.5 rounded-full">
+                            Admin Suite
                         </span>
                     )}
-                </span>
+                </Link>
+
                 <button
                     onClick={logOut}
-                    className="text-xs font-bold uppercase tracking-wider text-slate-400 border border-border rounded-full px-4 py-2 hover:text-white hover:border-slate-600 transition-colors"
+                    className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-text/70 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full px-5 py-2.5 hover:text-white transition-all duration-300"
                 >
-                    Log Out
+                    <ArrowRightOnRectangleIcon className="h-4 w-4" />
+                    <span>Log Out</span>
                 </button>
             </div>
         </header>
-        <main className="max-w-6xl mx-auto px-6 py-12">{children}</main>
+
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">{children}</main>
     </div>
 );
 
@@ -105,9 +118,7 @@ const Dashboard: React.FC = () => {
 
         async function load() {
             try {
-                const url = isAdmin
-                    ? `/api/admin/admin`
-                    : `/api/membership/userInfo`;
+                const url = isAdmin ? `/api/admin/admin` : `/api/membership/userInfo`;
 
                 const res = await fetch(url, {
                     credentials: "include",
@@ -119,7 +130,6 @@ const Dashboard: React.FC = () => {
 
                 if (isAdmin) {
                     const rows: UserInfo[] = data.rows ?? [];
-
                     setUsersInfo(
                         rows.map((row) => ({
                             name: row.name,
@@ -132,14 +142,9 @@ const Dashboard: React.FC = () => {
                     );
                 } else {
                     const rows: MembershipRow[] = data.rows ?? [];
-
-                    // Find a valid current membership.
                     const current =
-                        rows.find(
-                            (r) => r.status === "active" || r.status === "due_soon"
-                        ) ?? rows[0];
+                        rows.find((r) => r.status === "active" || r.status === "due_soon") ?? rows[0];
 
-                    // No membership records returned.
                     if (!current || !current.membership_name) {
                         setHasMembership(false);
                         return;
@@ -178,139 +183,222 @@ const Dashboard: React.FC = () => {
 
     if (isLoading || !userObj) {
         return (
-            <Shell isAdmin={isAdmin} logOut={logOut}>
-                <div className="animate-pulse space-y-4 max-w-xl">
-                    <div className="h-4 w-32 bg-white/5 rounded-md" />
-                    <div className="h-9 w-72 bg-white/5 rounded-md" />
+            <Shell isAdmin={false} logOut={logOut}>
+                <div className="animate-pulse space-y-6 max-w-xl">
+                    <div className="h-4 w-32 bg-white/10 rounded-full" />
+                    <div className="h-10 w-72 bg-white/10 rounded-xl" />
                 </div>
             </Shell>
         );
     }
 
+    // Calculate quick metrics for Admin
+    const totalRevenue = usersInfo.reduce((acc, curr) => acc + (curr.price || 0), 0);
+    const activeMembersCount = usersInfo.filter((u) => u.status === "active").length;
+
     return (
         <Shell isAdmin={isAdmin} logOut={logOut}>
             <motion.div
-                initial={{ opacity: 0, y: 12 }}
+                initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
             >
-                <p className="text-xs font-bold uppercase tracking-widest text-secondary mb-2">
-                    {isAdmin ? "Membership Overview" : "Members Portal"}
-                </p>
-                <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tight text-white mb-10">
-                    Welcome back, {userObj.name}
-                </h1>
+                {/* Welcome Section */}
+                <div className="mb-10">
+                    <div className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-widest text-secondary bg-secondary/10 px-4 py-1.5 rounded-full border border-secondary/30 mb-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                        </svg>
+
+                        <span>{isAdmin ? "Admin Overview" : "Member Portal"}</span>
+                    </div>
+                    <h1 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-white">
+                        Welcome back, <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">{userObj.name}</span>
+                    </h1>
+                </div>
 
                 {isAdmin ? (
-                    // ── Admin: operations table ──────────────────────────
-                    <div className="rounded-2xl border border-border bg-surface overflow-hidden">
-                        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-                            <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400">
-                                All Members
-                            </h2>
-                            <span className="text-xs text-slate-500">
-                                {usersInfo.length} {usersInfo.length === 1 ? "member" : "members"}
-                            </span>
+                    /* ── Admin Dashboard View ── */
+                    <div className="space-y-8">
+                        {/* Quick Metrics Bar */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                            <div className="bg-surface/60 backdrop-blur-md border border-white/10 rounded-3xl p-6 flex items-center gap-4 shadow-xl">
+                                <div className="p-3.5 rounded-2xl bg-primary/10 border border-primary/20 text-primary">
+                                    <UsersIcon className="h-6 w-6" />
+                                </div>
+                                <div>
+                                    <p className="text-xs font-bold uppercase tracking-wider text-text/50">Total Members</p>
+                                    <p className="text-2xl font-black text-white mt-0.5">{usersInfo.length}</p>
+                                </div>
+                            </div>
+
+                            <div className="bg-surface/60 backdrop-blur-md border border-white/10 rounded-3xl p-6 flex items-center gap-4 shadow-xl">
+                                <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                                    <ShieldCheckIcon className="h-6 w-6" />
+                                </div>
+                                <div>
+                                    <p className="text-xs font-bold uppercase tracking-wider text-text/50">Active Subscriptions</p>
+                                    <p className="text-2xl font-black text-white mt-0.5">{activeMembersCount}</p>
+                                </div>
+                            </div>
+
+                            <div className="bg-surface/60 backdrop-blur-md border border-white/10 rounded-3xl p-6 flex items-center gap-4 shadow-xl">
+                                <div className="p-3.5 rounded-2xl bg-secondary/10 border border-secondary/20 text-secondary">
+                                    <CurrencyDollarIcon className="h-6 w-6" />
+                                </div>
+                                <div>
+                                    <p className="text-xs font-bold uppercase tracking-wider text-text/50">Total Value</p>
+                                    <p className="text-2xl font-black text-white mt-0.5">${totalRevenue.toLocaleString()}</p>
+                                </div>
+                            </div>
                         </div>
 
-                        {dataLoading ? (
-                            <div className="p-6 space-y-3">
-                                {[...Array(4)].map((_, i) => (
-                                    <div key={i} className="h-10 bg-white/5 rounded-md animate-pulse" />
-                                ))}
-                            </div>
-                        ) : usersInfo.length === 0 ? (
-                            <p className="text-sm text-slate-400 px-6 py-10 text-center">
-                                No members to show yet.
-                            </p>
-                        ) : (
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-sm">
-                                    <thead>
-                                        <tr className="text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b border-border">
-                                            <th className="px-6 py-3 font-bold">Name</th>
-                                            <th className="px-6 py-3 font-bold">Plan</th>
-                                            <th className="px-6 py-3 font-bold">Price</th>
-                                            <th className="px-6 py-3 font-bold">Due</th>
-                                            <th className="px-6 py-3 font-bold">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {usersInfo.map((u, i) => (
-                                            <tr key={i} className="border-b border-border last:border-0 hover:bg-white/[0.02] transition-colors">
-                                                <td className="px-6 py-4 text-white font-medium">{u.name}</td>
-                                                <td className="px-6 py-4 text-slate-400">{u.membership}</td>
-                                                <td className="px-6 py-4 text-slate-300">${u.price}</td>
-                                                <td className="px-6 py-4 text-slate-400">{u.dueDate ? formatDate(u.dueDate) : "—"}</td>
-                                                <td className="px-6 py-4"><StatusBadge status={u.status} /></td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
-                    </div>
-                ) : (
-                    // ── Member: single payment card ──────────────────────
-                    <div className="p-[2px] rounded-2xl bg-gradient-to-b from-primary to-secondary max-w-xl">
-                        <div className="bg-surface rounded-[14px] p-8">
-                            <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400">
-                                    Next Payment
+                        {/* Members Table Card */}
+                        <div className="rounded-3xl border border-white/10 bg-surface/60 backdrop-blur-xl overflow-hidden shadow-2xl">
+                            <div className="flex items-center justify-between px-8 py-6 border-b border-white/10">
+                                <h2 className="text-sm font-extrabold uppercase tracking-widest text-white">
+                                    Member Directory
                                 </h2>
-                                {!dataLoading && hasMembership && <StatusBadge status={status} />}
+                                <span className="text-xs font-medium text-text/60 bg-white/5 border border-white/10 px-3 py-1 rounded-full">
+                                    {usersInfo.length} registered
+                                </span>
                             </div>
 
                             {dataLoading ? (
-                                <div className="animate-pulse space-y-3">
-                                    <div className="h-8 w-40 bg-white/5 rounded-md" />
-                                    <div className="h-4 w-56 bg-white/5 rounded-md" />
+                                <div className="p-8 space-y-4">
+                                    {[...Array(4)].map((_, i) => (
+                                        <div key={i} className="h-12 bg-white/5 rounded-xl animate-pulse" />
+                                    ))}
                                 </div>
-                            ) : hasMembership ? (
-                                <div>
-                                    <p className="text-3xl font-black text-white">${price}</p>
-                                    <p className="text-sm text-slate-400 mt-1">
-                                        due {dueDate ? formatDate(dueDate) : "—"}
-                                    </p>
+                            ) : usersInfo.length === 0 ? (
+                                <div className="py-16 text-center">
+                                    <p className="text-sm text-text/60">No members found in the database.</p>
                                 </div>
                             ) : (
-                                <div>
-                                    <p className="text-sm text-slate-400 mb-4">
-                                        You don't have an active membership yet.
-                                    </p>
-                                    <Link
-                                        to="/#membership"
-                                        className="inline-block bg-gradient-to-r from-primary to-secondary text-white font-bold py-2.5 px-5 rounded-xl text-xs uppercase tracking-wider hover:scale-[1.02] transition-transform"
-                                    >
-                                        View Plans
-                                    </Link>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left border-collapse">
+                                        <thead>
+                                            <tr className="text-[11px] font-extrabold uppercase tracking-widest text-text/50 border-b border-white/10 bg-white/[0.02]">
+                                                <th className="px-8 py-4">Name</th>
+                                                <th className="px-8 py-4">Plan</th>
+                                                <th className="px-8 py-4">Price</th>
+                                                <th className="px-8 py-4">Due Date</th>
+                                                <th className="px-8 py-4">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-white/5 text-sm">
+                                            {usersInfo.map((u, i) => (
+                                                <tr key={i} className="hover:bg-white/[0.04] transition-colors">
+                                                    <td className="px-8 py-5 text-white font-bold flex items-center gap-3">
+                                                        <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-primary to-secondary flex items-center justify-center text-xs font-black text-white">
+                                                            {u.name.charAt(0)}
+                                                        </div>
+                                                        {u.name}
+                                                    </td>
+                                                    <td className="px-8 py-5 text-text/80 font-medium">{u.membership}</td>
+                                                    <td className="px-8 py-5 text-white font-extrabold">${u.price}</td>
+                                                    <td className="px-8 py-5 text-text/70">{u.dueDate ? formatDate(u.dueDate) : "—"}</td>
+                                                    <td className="px-8 py-5"><StatusBadge status={u.status} /></td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
                                 </div>
                             )}
-                            <div className="mt-6 relative overflow-hidden rounded-xl border border-primary/20 bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/5 p-4">
-                                <div className="absolute -top-10 -right-10 h-24 w-24 rounded-full bg-primary/20 blur-2xl" />
-                                <div className="absolute -bottom-10 -left-10 h-20 w-20 rounded-full bg-secondary/20 blur-2xl" />
+                        </div>
+                    </div>
+                ) : (
+                    /* ── Member Portal View ── */
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        <div className="lg:col-span-7">
+                            <div className="rounded-3xl bg-surface/80 border border-white/15 backdrop-blur-2xl p-8 shadow-2xl relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-primary/20 to-secondary/20 blur-3xl pointer-events-none" />
 
-                                <div className="relative flex items-center gap-3">
-                                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-secondary shadow-lg shadow-primary/20">
-                                        <span className="text-base"></span>
-                                    </div>
-
-                                    <div>
-                                        <div className="flex items-center gap-2">
-                                            <p className="text-sm font-bold text-white">
-                                                More features coming soon
-                                            </p>
-                                            <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary">
-                                                Stay tuned
-                                            </span>
+                                <div className="flex items-center justify-between mb-8 relative z-10">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-3 rounded-2xl bg-secondary/10 border border-secondary/20 text-secondary">
+                                            <CreditCardIcon className="h-6 w-6" />
                                         </div>
-                                        <p className="mt-0.5 text-xs text-slate-400">
-                                            We're working on exciting new ways to improve your experience.
-                                        </p>
+                                        <div>
+                                            <h2 className="text-sm font-extrabold uppercase tracking-widest text-text/60">
+                                                Subscription Status
+                                            </h2>
+                                            <p className="text-lg font-black text-white">Current Billing Cycle</p>
+                                        </div>
                                     </div>
+                                    {!dataLoading && hasMembership && <StatusBadge status={status} />}
+                                </div>
+
+                                {dataLoading ? (
+                                    <div className="animate-pulse space-y-4 py-6">
+                                        <div className="h-10 w-48 bg-white/10 rounded-xl" />
+                                        <div className="h-5 w-64 bg-white/10 rounded-lg" />
+                                    </div>
+                                ) : hasMembership ? (
+                                    <div className="space-y-6 relative z-10">
+                                        <div className="p-6 rounded-2xl bg-white/5 border border-white/10 flex items-baseline justify-between">
+                                            <div>
+                                                <p className="text-xs font-bold uppercase tracking-wider text-text/50">Amount Due</p>
+                                                <p className="text-4xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary mt-1">
+                                                    ${price}
+                                                </p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-xs font-bold uppercase tracking-wider text-text/50">Renewal Date</p>
+                                                <p className="text-sm sm:text-base font-bold text-white mt-1">
+                                                    {dueDate ? formatDate(dueDate) : "—"}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="py-6 space-y-6 relative z-10">
+                                        <div className="p-6 rounded-2xl bg-white/5 border border-white/10">
+                                            <p className="text-sm font-medium text-text/80 mb-2">
+                                                You do not have an active membership plan assigned right now.
+                                            </p>
+                                            <p className="text-xs text-text/50">
+                                                Select a tier to unlock full gym equipment and class access.
+                                            </p>
+                                        </div>
+                                        <Link
+                                            to="/#membership"
+                                            className="inline-flex items-center justify-center w-full bg-gradient-to-r from-primary to-secondary text-white font-extrabold py-4 px-6 rounded-2xl text-xs uppercase tracking-widest shadow-lg shadow-primary/25 hover:scale-[1.01] transition-all"
+                                        >
+                                            Browse Membership Plans
+                                        </Link>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Sidebar Promo Card */}
+                        <div className="lg:col-span-5">
+                            <div className="rounded-3xl border border-primary/30 bg-gradient-to-br from-primary/10 via-surface/60 to-secondary/10 p-8 backdrop-blur-2xl shadow-xl h-full flex flex-col justify-between relative overflow-hidden">
+                                <div className="absolute -top-12 -right-12 h-36 w-36 rounded-full bg-primary/25 blur-3xl pointer-events-none" />
+
+                                <div>
+                                    <div className="inline-flex items-center gap-2 bg-primary/20 text-primary border border-primary/30 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest mb-4">
+                                        <CheckBadgeIcon className="h-4 w-4" />
+                                        <span>Member Benefits</span>
+                                    </div>
+                                    <h3 className="text-2xl font-black uppercase tracking-tight text-white mb-2">
+                                        More Features Coming Soon
+                                    </h3>
+                                    <p className="text-sm text-text/70 leading-relaxed">
+                                        We are building advanced workout trackers, personal trainer booking tools, and class scheduling directly into your dashboard.
+                                    </p>
+                                </div>
+
+                                <div className="mt-8 pt-6 border-t border-white/10 flex items-center gap-3">
+                                    <div className="h-10 w-10 rounded-xl bg-secondary/20 border border-secondary/30 flex items-center justify-center text-secondary shrink-0">
+                                        <CalendarDaysIcon className="h-5 w-5" />
+                                    </div>
+                                    <span className="text-xs font-semibold text-text/90">
+                                        Stay tuned for updates on your member portal.
+                                    </span>
                                 </div>
                             </div>
-
                         </div>
                     </div>
                 )}
