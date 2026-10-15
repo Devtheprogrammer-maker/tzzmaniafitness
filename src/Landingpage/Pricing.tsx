@@ -83,8 +83,7 @@ const Pricing: React.FC = () => {
       id="membership"
       variants={sectionVariants}
       initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-60px" }}
+      animate="visible" // Changed from whileInView to animate for reliable direct-hash loading
       className="bg-background border-t border-white/10 py-20 text-text overflow-hidden relative"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -161,8 +160,8 @@ const Pricing: React.FC = () => {
                   variants={cardVariants}
                   whileHover={{ y: -4, scale: 1.01 }}
                   className={`rounded-2xl flex flex-col transition-all duration-300 relative group border ${plan.is_popular
-                      ? "bg-surface/80 border-primary/50 shadow-xl shadow-primary/20 lg:-translate-y-2 backdrop-blur-2xl"
-                      : "bg-surface/40 border-white/10 hover:border-white/20 backdrop-blur-md"
+                    ? "bg-surface/80 border-primary/50 shadow-xl shadow-primary/20 lg:-translate-y-2 backdrop-blur-2xl"
+                    : "bg-surface/40 border-white/10 hover:border-white/20 backdrop-blur-md"
                     }`}
                 >
                   {/* Subtle Popular Spotlight Gradient Accent */}
@@ -221,8 +220,8 @@ const Pricing: React.FC = () => {
                     <Link
                       to="/login"
                       className={`w-full font-bold py-3 px-4 rounded-xl text-center text-xs uppercase tracking-wider transition-all duration-300 shadow-md ${plan.is_popular
-                          ? "bg-gradient-to-r from-primary to-secondary text-white shadow-primary/25 hover:scale-[1.01]"
-                          : "bg-white/5 hover:bg-white/10 border border-white/10 text-white hover:border-white/20"
+                        ? "bg-gradient-to-r from-primary to-secondary text-white shadow-primary/25 hover:scale-[1.01]"
+                        : "bg-white/5 hover:bg-white/10 border border-white/10 text-white hover:border-white/20"
                         }`}
                     >
                       Get Started

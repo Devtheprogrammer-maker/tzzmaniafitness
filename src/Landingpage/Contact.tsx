@@ -406,8 +406,8 @@ export default function Contact() {
                                                                 clearError("subject");
                                                             }}
                                                             className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${selected
-                                                                    ? "border-primary bg-primary/15 text-white"
-                                                                    : "border-border text-slate-400 hover:border-slate-600 hover:text-white"
+                                                                ? "border-primary bg-primary/15 text-white"
+                                                                : "border-border text-slate-400 hover:border-slate-600 hover:text-white"
                                                                 }`}
                                                         >
                                                             {t}

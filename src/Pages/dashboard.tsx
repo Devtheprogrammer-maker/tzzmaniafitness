@@ -361,12 +361,20 @@ const Dashboard: React.FC = () => {
                                                 Select a tier to unlock full gym equipment and class access.
                                             </p>
                                         </div>
-                                        <Link
-                                            to="/#membership"
-                                            className="inline-flex items-center justify-center w-full bg-gradient-to-r from-primary to-secondary text-white font-extrabold py-4 px-6 rounded-2xl text-xs uppercase tracking-widest shadow-lg shadow-primary/25 hover:scale-[1.01] transition-all"
+                                        <button
+                                            onClick={() => {
+                                                navigate("/");
+                                                setTimeout(() => {
+                                                    const el = document.getElementById("membership");
+                                                    if (el) {
+                                                        el.scrollIntoView({ behavior: "smooth" });
+                                                    }
+                                                }, 150);
+                                            }}
+                                            className="inline-flex items-center justify-center w-full bg-gradient-to-r from-primary to-secondary text-white font-extrabold py-4 px-6 rounded-2xl text-xs uppercase tracking-widest shadow-lg shadow-primary/25 hover:scale-[1.01] transition-all cursor-pointer"
                                         >
                                             Browse Membership Plans
-                                        </Link>
+                                        </button>
                                     </div>
                                 )}
                             </div>
